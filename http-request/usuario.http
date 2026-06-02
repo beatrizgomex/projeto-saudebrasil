@@ -1,0 +1,26 @@
+### Cadastrar usuário
+POST http://localhost:8080/api/usuario
+Content-Type: application/json
+
+{
+  "nome": "Beatriz",
+  "email": "bea@email.com",
+  "cpf": "12345678900",
+  "senha": "123456"
+}
+
+###
+
+### Buscar usuário por ID
+GET http://localhost:8080/api/usuario/1
+
+###
+
+### Login
+POST http://localhost:8080/api/usuario/login
+Content-Type: application/json
+
+{
+  "email": "bea@email.com",
+  "senha": "123456"
+}

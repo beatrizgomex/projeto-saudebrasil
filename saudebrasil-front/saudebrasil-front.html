@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaúdeBrasil – Plataforma de Monitoramento</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-50: #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-200: #bfdbfe;
+    --blue-400: #60a5fa;
+    --blue-600: #2563eb;
+    --blue-800: #1e40af;
+    --blue-900: #1e3a8a;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --amber-50: #fffbeb;
+    --amber-100: #fef3c7;
+    --amber-200: #fde68a;
+    --amber-500: #f59e0b;
+    --amber-600: #d97706;
+    --amber-800: #92400e;
+    --amber-900: #78350f;
+    --red-50: #fef2f2;
+    --red-100: #fee2e2;
+    --red-200: #fecaca;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+    --red-800: #991b1b;
+    --green-50: #f0fdf4;
+    --green-100: #dcfce7;
+    --green-200: #bbf7d0;
+    --green-600: #16a34a;
+    --green-700: #15803d;
+    --green-800: #166534;
+    --purple-100: #f3e8ff;
+    --purple-800: #6b21a8;
+    --cyan-100: #cffafe;
+    --cyan-800: #155e75;
+    --radius: 0.5rem;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  }
+
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 16px; color: var(--gray-900); background: var(--gray-50); line-height: 1.5; }
+
+  /* ── UTILITIES ─────────────────────────────────────── */
+  .hidden { display: none !important; }
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .flex-1 { flex: 1; }
+  .items-center { align-items: center; }
+  .items-start { align-items: flex-start; }
+  .justify-center { justify-content: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-3 { gap: 0.75rem; }
+  .gap-4 { gap: 1rem; }
+  .gap-6 { gap: 1.5rem; }
+  .gap-8 { gap: 2rem; }
+  .w-full { width: 100%; }
+  .min-h-screen { min-height: 100vh; }
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .relative { position: relative; }
+  .absolute { position: absolute; }
+  .inset-0 { inset: 0; }
+  .overflow-hidden { overflow: hidden; }
+  .overflow-auto { overflow: auto; }
+  .overflow-y-auto { overflow-y: auto; }
+  .transition { transition: all 0.15s ease; }
+  .cursor-pointer { cursor: pointer; }
+  .italic { font-style: italic; }
+  .font-medium { font-weight: 500; }
+  .font-semibold { font-weight: 600; }
+  .font-bold { font-weight: 700; }
+  .leading-tight { line-height: 1.25; }
+  .leading-relaxed { line-height: 1.625; }
+  .border-t { border-top: 1px solid var(--gray-200); }
+  .border-b { border-bottom: 1px solid var(--gray-200); }
+  .border-l-4 { border-left: 4px solid; }
+  .space-y-1 > * + * { margin-top: 0.25rem; }
+  .space-y-2 > * + * { margin-top: 0.5rem; }
+  .space-y-3 > * + * { margin-top: 0.75rem; }
+  .space-y-4 > * + * { margin-top: 1rem; }
+  .space-y-5 > * + * { margin-top: 1.25rem; }
+  .space-y-6 > * + * { margin-top: 1.5rem; }
+
+  /* ── TYPOGRAPHY ─────────────────────────────────────── */
+  .text-xs { font-size: 0.75rem; }
+  .text-sm { font-size: 0.875rem; }
+  .text-base { font-size: 1rem; }
+  .text-lg { font-size: 1.125rem; }
+  .text-xl { font-size: 1.25rem; }
+  .text-2xl { font-size: 1.5rem; }
+  .text-3xl { font-size: 1.875rem; }
+  .text-4xl { font-size: 2.25rem; }
+
+  /* ── COLORS ─────────────────────────────────────── */
+  .text-white { color: #fff; }
+  .text-gray-400 { color: var(--gray-400); }
+  .text-gray-500 { color: var(--gray-500); }
+  .text-gray-600 { color: var(--gray-600); }
+  .text-gray-700 { color: var(--gray-700); }
+  .text-gray-900 { color: var(--gray-900); }
+  .text-blue-600 { color: var(--blue-600); }
+  .text-blue-700 { color: #1d4ed8; }
+  .text-blue-800 { color: var(--blue-800); }
+  .text-blue-900 { color: var(--blue-900); }
+  .text-blue-100 { color: var(--blue-100); }
+  .text-amber-600 { color: var(--amber-600); }
+  .text-amber-900 { color: var(--amber-900); }
+  .text-red-600 { color: var(--red-600); }
+  .text-red-800 { color: var(--red-800); }
+  .text-green-600 { color: var(--green-600); }
+  .text-green-700 { color: var(--green-700); }
+
+  /* ── BACKGROUNDS ─────────────────────────────────────── */
+  .bg-white { background: #fff; }
+  .bg-gray-50 { background: var(--gray-50); }
+  .bg-gray-100 { background: var(--gray-100); }
+  .bg-gray-800 { background: var(--gray-800); }
+  .bg-gray-900 { background: var(--gray-900); }
+  .bg-blue-50 { background: var(--blue-50); }
+  .bg-blue-100 { background: var(--blue-100); }
+  .bg-blue-600 { background: var(--blue-600); }
+  .bg-amber-50 { background: var(--amber-50); }
+  .bg-red-50 { background: var(--red-50); }
+  .bg-green-50 { background: var(--green-50); }
+
+  /* ── BUTTONS ─────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.5rem 1rem; border-radius: var(--radius); border: none;
+    font-size: 0.875rem; font-weight: 500; cursor: pointer;
+    transition: background 0.15s, opacity 0.15s; text-decoration: none;
+    gap: 0.375rem; white-space: nowrap;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--blue-900); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--blue-800); }
+  .btn-outline { background: transparent; color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-outline:hover { background: var(--gray-50); }
+  .btn-destructive { background: var(--red-600); color: #fff; }
+  .btn-destructive:hover { background: var(--red-800); }
+  .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+  .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; }
+  .btn-full { width: 100%; }
+  .btn-icon { background: none; border: none; cursor: pointer; padding: 0; display: inline-flex; align-items: center; color: var(--gray-400); }
+  .btn-icon:hover { color: var(--gray-600); }
+
+  /* ── INPUTS ─────────────────────────────────────── */
+  .input {
+    width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--gray-300);
+    border-radius: var(--radius); font-size: 0.875rem; background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s; outline: none; color: var(--gray-900);
+  }
+  .input:focus { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .input.error { border-color: var(--red-500); }
+  .input.error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+  .input:disabled { background: var(--gray-100); color: var(--gray-500); cursor: not-allowed; }
+  .input-with-icon { padding-left: 2.25rem; }
+  .input-icon-left { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); pointer-events: none; }
+  .input-icon-right { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); }
+  label.form-label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--gray-700); margin-bottom: 0.375rem; }
+  textarea.input { resize: vertical; }
+  select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2.5rem; }
+  .field-error { display: flex; align-items: center; gap: 0.25rem; color: var(--red-600); font-size: 0.75rem; margin-top: 0.25rem; }
+
+  /* ── CARDS ─────────────────────────────────────── */
+  .card { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+  .card-header { padding: 1.5rem 1.5rem 0; }
+  .card-title { font-size: 1.125rem; font-weight: 600; color: var(--gray-900); display: flex; align-items: center; gap: 0.5rem; }
+  .card-content { padding: 1.5rem; }
+  .card-content.p-6 { padding: 1.5rem; }
+
+  /* ── BADGE ─────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; padding: 0.125rem 0.5rem;
+    border-radius: 9999px; font-size: 0.75rem; font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .badge-green { background: var(--green-50); color: var(--green-700); border-color: var(--green-200); }
+  .badge-amber { background: var(--amber-50); color: #b45309; border-color: var(--amber-200); }
+  .badge-red { background: var(--red-50); color: var(--red-800); border-color: var(--red-200); }
+  .badge-blue { background: var(--blue-50); color: var(--blue-700); border-color: var(--blue-200); }
+  .badge-gray { background: var(--gray-100); color: var(--gray-700); border-color: var(--gray-200); }
+  .badge-purple { background: var(--purple-100); color: var(--purple-800); }
+  .badge-cyan { background: var(--cyan-100); color: var(--cyan-800); }
+
+  /* ── ALERT ─────────────────────────────────────── */
+  .alert {
+    display: flex; gap: 0.75rem; padding: 0.875rem 1rem;
+    border-radius: var(--radius); border: 1px solid; align-items: flex-start;
+  }
+  .alert-amber { background: var(--amber-50); border-color: var(--amber-200); color: var(--amber-900); }
+  .alert-blue { background: var(--blue-50); border-color: var(--blue-200); color: var(--blue-900); }
+  .alert svg { flex-shrink: 0; margin-top: 0.125rem; }
+
+  /* ── TABS ─────────────────────────────────────── */
+  .tabs-list { display: grid; background: var(--gray-100); border-radius: var(--radius); padding: 0.25rem; gap: 0.25rem; }
+  .tabs-list.grid-2 { grid-template-columns: 1fr 1fr; }
+  .tab-trigger {
+    padding: 0.5rem 1rem; border-radius: calc(var(--radius) - 2px); border: none;
+    background: transparent; font-size: 0.875rem; font-weight: 500;
+    color: var(--gray-600); cursor: pointer; transition: all 0.15s;
+  }
+  .tab-trigger.active { background: #fff; color: var(--gray-900); box-shadow: var(--shadow-sm); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── SWITCH ─────────────────────────────────────── */
+  .switch-wrap { display: flex; align-items: center; justify-content: space-between; }
+  .switch { position: relative; width: 2.75rem; height: 1.5rem; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-track {
+    position: absolute; inset: 0; background: #cbd5e1; border-radius: 9999px; cursor: pointer; transition: background 0.2s;
+  }
+  .switch input:checked + .switch-track { background: var(--blue-600); }
+  .switch-track::after {
+    content: ''; position: absolute; width: 1.125rem; height: 1.125rem;
+    background: #fff; border-radius: 50%; top: 0.1875rem; left: 0.1875rem;
+    transition: transform 0.2s; box-shadow: var(--shadow);
+  }
+  .switch input:checked + .switch-track::after { transform: translateX(1.25rem); }
+
+  /* ── CHECKBOX ─────────────────────────────────────── */
+  .checkbox-wrap { display: flex; align-items: center; gap: 0.5rem; }
+  .checkbox { width: 1rem; height: 1rem; border: 1.5px solid var(--gray-300); border-radius: 3px; cursor: pointer; accent-color: var(--blue-600); }
+
+  /* ── SLIDER ─────────────────────────────────────── */
+  .range-slider { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--gray-200); outline: none; }
+  .range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--blue-900); cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--blue-900); }
+  .range-slider::-moz-range-thumb { width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--blue-900); cursor: pointer; border: 2px solid #fff; }
+
+  /* ── SEPARATOR ─────────────────────────────────────── */
+  .separator { border: none; border-top: 1px solid var(--gray-200); margin: 0; }
+
+  /* ── TOAST ─────────────────────────────────────── */
+  #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
+  .toast {
+    background: var(--gray-900); color: #fff; padding: 0.875rem 1.25rem;
+    border-radius: var(--radius); box-shadow: var(--shadow-md); font-size: 0.875rem;
+    max-width: 22rem; display: flex; gap: 0.5rem; align-items: flex-start;
+    animation: toast-in 0.25s ease;
+  }
+  .toast.success { border-left: 4px solid #22c55e; }
+  .toast.error { border-left: 4px solid var(--red-500); }
+  .toast-title { font-weight: 600; }
+  .toast-desc { color: #9ca3af; font-size: 0.8125rem; margin-top: 0.125rem; }
+  @keyframes toast-in { from { opacity: 0; transform: translateX(1rem); } to { opacity: 1; transform: none; } }
+
+  /* ── MODAL / DIALOG ─────────────────────────────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 100%; max-width: 56rem; max-height: 95vh; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  /* ══════════════════════════════════════════════════
+     PAGE: LOGIN
+  ══════════════════════════════════════════════════ */
+  #page-login { display: flex; min-height: 100vh; }
+  .login-brand {
+    display: none; width: 50%; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e3a8a 100%);
+    padding: 3rem; flex-direction: column; justify-content: center; align-items: flex-start;
+    color: #fff; position: relative; overflow: hidden;
+  }
+  @media(min-width:1024px){ .login-brand { display: flex; } }
+  .login-brand-glow-1 {
+    position: absolute; top: 5rem; left: 5rem; width: 16rem; height: 16rem;
+    background: #fff; border-radius: 50%; filter: blur(60px); opacity: 0.1;
+  }
+  .login-brand-glow-2 {
+    position: absolute; bottom: 5rem; right: 5rem; width: 24rem; height: 24rem;
+    background: var(--blue-400); border-radius: 50%; filter: blur(80px); opacity: 0.1;
+  }
+  .login-brand-content { position: relative; z-index: 1; max-width: 28rem; }
+  .login-brand h1 { margin-top: 2rem; font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+  .login-brand p { margin-top: 1rem; font-size: 1.125rem; color: var(--blue-100); }
+  .login-form-side {
+    width: 100%; display: flex; align-items: center; justify-content: center;
+    padding: 2rem; background: var(--gray-50);
+  }
+  @media(min-width:1024px){ .login-form-side { width: 50%; } }
+  .login-form-wrap { width: 100%; max-width: 28rem; }
+  .login-mobile-logo { display: flex; justify-content: center; margin-bottom: 2rem; }
+  @media(min-width:1024px){ .login-mobile-logo { display: none; } }
+  .login-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); padding: 2rem; }
+  .login-divider { position: relative; margin: 1.5rem 0; }
+  .login-divider::before { content: ''; position: absolute; inset: 0; top: 50%; height: 1px; background: var(--gray-300); }
+  .login-divider span { position: relative; display: flex; justify-content: center; font-size: 0.875rem; color: var(--gray-500); }
+  .login-divider span em { background: #fff; padding: 0 1rem; }
+  .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+  /* ══════════════════════════════════════════════════
+     LAYOUT: DASHBOARD
+  ══════════════════════════════════════════════════ */
+  #page-dashboard { display: none; min-height: 100vh; }
+  #page-dashboard.active { display: flex; }
+  .sidebar {
+    width: 16rem; background: var(--gray-900); color: #fff;
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .sidebar-logo { padding: 1.5rem; border-bottom: 1px solid var(--gray-800); }
+  .sidebar-nav { flex: 1; padding: 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+  .nav-btn {
+    width: 100%; display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: var(--radius); border: none;
+    background: transparent; color: var(--gray-300); cursor: pointer;
+    transition: all 0.15s; font-size: 0.875rem; text-align: left;
+  }
+  .nav-btn:hover { background: var(--gray-800); color: #fff; }
+  .nav-btn.active { background: var(--blue-600); color: #fff; }
+  .sidebar-user { padding: 1rem; border-top: 1px solid var(--gray-800); }
+  .sidebar-user-card { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: var(--radius); background: var(--gray-800); }
+  .avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--blue-600); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 0.875rem; flex-shrink: 0; }
+  .avatar-lg { width: 5rem; height: 5rem; font-size: 1.5rem; }
+  .sidebar-main { flex: 1; overflow: auto; }
+  .page-content { padding: 2rem; max-width: 80rem; margin: 0 auto; }
+
+  /* ══════════════════════════════════════════════════
+     DASHBOARD PAGE
+  ══════════════════════════════════════════════════ */
+  .dash-grid-2 { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+  @media(min-width:1024px){ .dash-grid-2 { grid-template-columns: 1fr 1fr; } }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.375rem; }
+  .cal-day-header { text-align: center; font-size: 0.6875rem; font-weight: 500; color: var(--gray-500); padding: 0.25rem 0; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 0.5rem; font-size: 0.875rem; cursor: default;
+  }
+  .cal-day.normal { background: var(--gray-100); color: var(--gray-700); }
+  .cal-day.has-symptom { background: var(--blue-400); color: #fff; font-weight: 500; }
+  .records-list { display: flex; flex-direction: column; gap: 1rem; }
+  .record-item { padding: 0.75rem 1rem; border-left: 4px solid; border-radius: 0 0.375rem 0.375rem 0; }
+  .record-item.blue { border-color: var(--blue-600); }
+  .record-item.amber { border-color: var(--amber-500); }
+
+  /* ══════════════════════════════════════════════════
+     HEALTH HISTORY
+  ══════════════════════════════════════════════════ */
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  @media(min-width:768px){ .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+  .stat-card { text-align: center; }
+  .stat-num { font-size: 1.875rem; font-weight: 700; }
+  .stat-label { font-size: 0.875rem; color: var(--gray-600); margin-top: 0.25rem; }
+  .history-item {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem;
+    border: 1px solid var(--gray-200); border-radius: var(--radius);
+    transition: background 0.15s;
+  }
+  .history-item:hover { background: var(--gray-50); }
+  .history-date { width: 4rem; text-align: center; flex-shrink: 0; }
+  .history-date .day { font-size: 1.5rem; font-weight: 700; color: var(--gray-900); }
+  .history-date .month { font-size: 0.875rem; color: var(--gray-500); text-transform: capitalize; }
+  .history-divider { width: 1px; height: 3rem; background: var(--gray-200); flex-shrink: 0; }
+
+  /* ══════════════════════════════════════════════════
+     MEDICAL REPORTS
+  ══════════════════════════════════════════════════ */
+  .report-card-icon { width: 4rem; height: 4rem; background: var(--blue-100); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .report-actions { display: flex; gap: 0.5rem; margin-left: 1rem; }
+
+  /* ══════════════════════════════════════════════════
+     CLINICAL REPORT VIEW (modal)
+  ══════════════════════════════════════════════════ */
+  .report-view-toolbar { padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0; }
+  .report-view-body { flex: 1; overflow-y: auto; background: var(--gray-50); padding: 2rem; }
+  .report-doc { max-width: 42rem; margin: 0 auto; background: #fff; border: 4px solid var(--blue-600); border-radius: var(--radius); box-shadow: var(--shadow-md); }
+  .report-doc-header { border-bottom: 2px solid var(--blue-600); padding: 1.5rem; text-align: center; }
+  .report-doc-header h1 { font-size: 1.25rem; font-weight: 700; color: var(--blue-900); margin-top: 0.75rem; }
+  .report-doc-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .report-data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .report-section-title { font-weight: 700; color: var(--blue-900); font-size: 0.875rem; margin-bottom: 0.75rem; }
+  .report-data-row { font-size: 0.875rem; margin-bottom: 0.5rem; }
+  .report-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+  .report-table th { background: var(--blue-900); color: #fff; padding: 0.5rem 0.75rem; text-align: left; font-size: 0.75rem; font-weight: 600; }
+  .report-table td { padding: 0.5rem 0.75rem; font-size: 0.75rem; border-bottom: 1px solid var(--gray-200); }
+  .report-table tr:nth-child(even) td { background: var(--gray-50); }
+  .intensity-bubble { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--blue-100); color: var(--blue-900); font-weight: 700; font-size: 0.75rem; }
+  .report-doc-footer { border-top: 2px solid var(--blue-600); background: var(--gray-50); padding: 1rem 1.5rem; font-size: 0.75rem; color: var(--gray-600); }
+  .doctor-notes { border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 1rem; min-height: 6rem; background: var(--gray-50); }
+
+  /* ══════════════════════════════════════════════════
+     SETTINGS
+  ══════════════════════════════════════════════════ */
+  .settings-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+  @media(min-width:768px){ .settings-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; } }
+  .danger-zone { border-color: var(--red-200); }
+  .danger-title { color: var(--red-600); }
+
+  /* ══════════════════════════════════════════════════
+     REGISTER SYMPTOM
+  ══════════════════════════════════════════════════ */
+  .date-display-btn {
+    width: 100%; display: flex; align-items: center; padding: 0.5rem 0.75rem;
+    border: 1px solid var(--gray-300); border-radius: var(--radius);
+    background: #fff; cursor: pointer; font-size: 0.875rem; color: var(--gray-700);
+    gap: 0.5rem;
+  }
+  .date-display-btn:hover { background: var(--gray-50); }
+  .intensity-labels { display: flex; justify-content: space-between; font-size: 0.6875rem; color: var(--gray-500); margin-top: 0.375rem; }
+  .intensity-value { font-size: 0.875rem; font-weight: 600; color: var(--blue-600); }
+  .tip-box { margin-top: 1.5rem; padding: 1rem; background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: var(--radius); }
+
+  /* ══════════════════════════════════════════════════
+     LOGO COMPONENT
+  ══════════════════════════════════════════════════ */
+  .logo { display: flex; align-items: center; gap: 0.5rem; }
+  .logo-text { font-size: 1.25rem; font-weight: 700; }
+  .logo-text.dark { color: var(--gray-900); }
+  .logo-text.white { color: #fff; }
+
+  /* ══════════════════════════════════════════════════
+     CALENDAR POPOVER
+  ══════════════════════════════════════════════════ */
+  .cal-popover {
+    display: none; position: absolute; z-index: 100; background: #fff;
+    border: 1px solid var(--gray-200); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 1rem; top: calc(100% + 4px); left: 0;
+    min-width: 18rem;
+  }
+  .cal-popover.open { display: block; }
+  .mini-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .mini-cal-nav button { background: none; border: none; cursor: pointer; color: var(--gray-600); padding: 0.25rem; border-radius: var(--radius); }
+  .mini-cal-nav button:hover { background: var(--gray-100); }
+  .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .mini-cal-header { text-align: center; font-size: 0.6875rem; font-weight: 500; color: var(--gray-500); padding: 0.25rem; }
+  .mini-cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8125rem; border-radius: 0.375rem; cursor: pointer; border: none; background: none;
+  }
+  .mini-cal-day:hover { background: var(--gray-100); }
+  .mini-cal-day.selected { background: var(--blue-900); color: #fff; }
+  .mini-cal-day.other-month { color: var(--gray-400); }
+
+  /* ══════════════════════════════════════════════════
+     CHART CONTAINER
+  ══════════════════════════════════════════════════ */
+  .chart-container { position: relative; height: 250px; }
+
+  /* ══════════════════════════════════════════════════
+     RESPONSIVE SIDEBAR
+  ══════════════════════════════════════════════════ */
+  @media(max-width: 768px) {
+    .sidebar { width: 100%; height: auto; flex-direction: row; position: fixed; bottom: 0; left: 0; z-index: 50; }
+    .sidebar-logo { display: none; }
+    .sidebar-nav { flex-direction: row; padding: 0.5rem; overflow-x: auto; }
+    .nav-btn { flex-direction: column; font-size: 0.65rem; gap: 0.25rem; padding: 0.5rem; min-width: 3.5rem; }
+    .nav-btn svg { width: 1.25rem; height: 1.25rem; }
+    .sidebar-user { display: none; }
+    .sidebar-main { padding-bottom: 5rem; }
+    .page-content { padding: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ TOAST CONTAINER ══ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE: LOGIN
+═══════════════════════════════════════════════════════ -->
+<div id="page-login">
+  <!-- Brand Side -->
+  <div class="login-brand">
+    <div class="login-brand-glow-1"></div>
+    <div class="login-brand-glow-2"></div>
+    <div class="login-brand-content">
+      <div class="logo"><div id="logo-brand"></div><span class="logo-text white">SaúdeBrasil</span></div>
+      <h1>Sua jornada para o bem-estar começa aqui.</h1>
+      <p>SaúdeBrasil</p>
+    </div>
+  </div>
+
+  <!-- Form Side -->
+  <div class="login-form-side">
+    <div class="login-form-wrap">
+      <div class="login-mobile-logo">
+        <div class="logo"><div id="logo-mobile"></div><span class="logo-text dark">SaúdeBrasil</span></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-list grid-2" style="margin-bottom:2rem">
+        <button class="tab-trigger active" onclick="switchLoginTab('login',this)">Entrar</button>
+        <button class="tab-trigger" onclick="switchLoginTab('register',this)">Cadastrar-se</button>
+      </div>
+
+      <!-- LOGIN TAB -->
+      <div id="tab-login" class="tab-content active">
+        <div class="login-card">
+          <h2 class="text-2xl font-bold text-gray-900" style="margin-bottom:1.5rem">Acessar minha conta</h2>
+          <form id="form-login" class="space-y-5" novalidate>
+            <!-- CPF -->
+            <div>
+              <label class="form-label" for="login-cpf">CPF</label>
+              <div class="relative">
+                <svg class="input-icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <input id="login-cpf" class="input input-with-icon" type="text" placeholder="CPF: 123.456.789-00" oninput="formatCPFInput(this)" onblur="validateLoginForm()">
+              </div>
+              <div id="err-login-cpf" class="field-error hidden">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span></span>
+              </div>
+            </div>
+            <!-- Password -->
+            <div>
+              <label class="form-label" for="login-password">Senha</label>
+              <div class="relative">
+                <input id="login-password" class="input" type="password" placeholder="Senha" style="padding-right:2.5rem" onblur="validateLoginForm()">
+                <button type="button" class="btn-icon input-icon-right" onclick="togglePassword('login-password',this)">
+                  <svg id="eye-login" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div id="err-login-password" class="field-error hidden">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span></span>
+              </div>
+              <button type="button" class="text-sm text-blue-600" style="margin-top:0.5rem" onclick="toast('Redefinição de senha','Em breve!')">Esqueci minha senha</button>
+            </div>
+            <!-- Remember -->
+            <div class="checkbox-wrap">
+              <input type="checkbox" id="remember" class="checkbox">
+              <label for="remember" class="text-sm text-gray-700">Lembrar-me</label>
+            </div>
+            <button type="submit" id="btn-login" class="btn btn-primary btn-full" disabled>Entrar</button>
+
+            <div class="login-divider"><span><em>Ou entre com</em></span></div>
+
+            <div class="social-grid">
+              <button type="button" class="btn btn-outline btn-full">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Google
+              </button>
+              <button type="button" class="btn btn-outline btn-full">
+                <svg width="18" height="18" fill="#1877F2" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Facebook
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- REGISTER TAB -->
+      <div id="tab-register" class="tab-content">
+        <div class="login-card">
+          <h2 class="text-2xl font-bold text-gray-900" style="margin-bottom:1.5rem">Criar nova conta</h2>
+          <form id="form-register" class="space-y-5" novalidate>
+            <div>
+              <label class="form-label" for="reg-name">Nome completo</label>
+              <input id="reg-name" class="input" type="text" placeholder="Seu nome completo" onblur="validateRegisterForm()">
+              <div id="err-reg-name" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <div>
+              <label class="form-label" for="reg-email">E-mail</label>
+              <input id="reg-email" class="input" type="email" placeholder="seu@email.com" onblur="validateRegisterForm()">
+              <div id="err-reg-email" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <div>
+              <label class="form-label" for="reg-cpf">CPF</label>
+              <input id="reg-cpf" class="input" type="text" placeholder="000.000.000-00" oninput="formatCPFInput(this)" onblur="validateRegisterForm()">
+              <div id="err-reg-cpf" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <div>
+              <label class="form-label" for="reg-password">Senha</label>
+              <div class="relative">
+                <input id="reg-password" class="input" type="password" placeholder="Crie uma senha segura" style="padding-right:2.5rem" onblur="validateRegisterForm()">
+                <button type="button" class="btn-icon input-icon-right" onclick="togglePassword('reg-password',this)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div id="err-reg-password" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <div>
+              <label class="form-label" for="reg-confirm">Confirmar senha</label>
+              <div class="relative">
+                <input id="reg-confirm" class="input" type="password" placeholder="Confirme sua senha" style="padding-right:2.5rem" onblur="validateRegisterForm()">
+                <button type="button" class="btn-icon input-icon-right" onclick="togglePassword('reg-confirm',this)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div id="err-reg-confirm" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <button type="submit" id="btn-register" class="btn btn-primary btn-full" disabled>Cadastrar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE: DASHBOARD APP
+═══════════════════════════════════════════════════════ -->
+<div id="page-dashboard">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo">
+        <div id="logo-sidebar"></div>
+        <span class="logo-text white">SaúdeBrasil</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" onclick="showSection('dashboard',this)" data-section="dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Painel do Paciente</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('register-symptom',this)" data-section="register-symptom">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+        <span>Registrar Sintoma</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('health-history',this)" data-section="health-history">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Histórico de Saúde</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('medical-reports',this)" data-section="medical-reports">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Relatórios Médicos</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('settings',this)" data-section="settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Configurações</span>
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar">GM</div>
+        <div style="flex:1;min-width:0">
+          <p class="text-sm font-medium truncate">Gabriel Monteiro</p>
+          <p class="text-xs text-gray-400">Paciente</p>
+        </div>
+      </div>
+      <button class="nav-btn" style="margin-top:0.75rem;width:100%" onclick="logout()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="sidebar-main">
+
+    <!-- ── SECTION: PATIENT DASHBOARD ── -->
+    <section id="section-dashboard" class="page-content">
+      <div style="margin-bottom:2rem">
+        <h1 class="text-3xl font-bold text-gray-900" style="margin-bottom:0.5rem">Bem-vindo, Gabriel Monteiro!</h1>
+        <p class="text-gray-600">Seu Resumo de Saúde Diário</p>
+      </div>
+
+      <div class="alert alert-amber" style="margin-bottom:2rem">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div class="text-sm"><strong>ALERTA DO SISTEMA:</strong> Padrão detectado - Febre persistente por 3 dias. Considere consultar seu médico e gerar um relatório clínico.</div>
+      </div>
+
+      <div class="dash-grid-2" style="margin-bottom:2rem">
+        <!-- Calendar -->
+        <div class="card">
+          <div class="card-content">
+            <h2 class="text-lg font-semibold" style="margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Calendário de Sintomas (Junho 2024)
+            </h2>
+            <div style="text-align:center;font-weight:600;color:var(--gray-700);margin-bottom:0.5rem">Junho 2024</div>
+            <div class="calendar-grid" id="cal-headers"></div>
+            <div class="calendar-grid" id="cal-days" style="margin-top:0.5rem"></div>
+          </div>
+        </div>
+        <!-- Chart -->
+        <div class="card">
+          <div class="card-content">
+            <h2 class="text-lg font-semibold" style="margin-bottom:1rem">Gráfico Evolutivo de Intensidade</h2>
+            <div class="chart-container">
+              <canvas id="chart-evolution"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-grid-2">
+        <!-- Last Records -->
+        <div class="card">
+          <div class="card-content">
+            <h2 class="text-lg font-semibold" style="margin-bottom:1rem">Últimos Registros</h2>
+            <div class="records-list">
+              <div class="record-item blue">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+                  <span class="font-semibold text-gray-900">15</span>
+                  <span class="text-sm text-gray-500">Jun</span>
+                </div>
+                <div class="font-medium text-gray-900">Febre</div>
+                <div class="text-sm text-gray-600">Intensidade 4, Dor Muscular</div>
+              </div>
+              <div class="record-item amber">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+                  <span class="font-semibold text-gray-900">14</span>
+                  <span class="text-sm text-gray-500">Jun</span>
+                </div>
+                <div class="font-medium text-gray-900">Cansaço</div>
+                <div class="text-sm text-gray-600">Intensidade 3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Generate Report -->
+        <div class="card">
+          <div class="card-content">
+            <h2 class="text-lg font-semibold" style="margin-bottom:1rem">Gerar Relatório para Consulta</h2>
+            <button class="btn btn-primary btn-full" style="margin-bottom:0.75rem" onclick="toast('Relatório','Funcionalidade será implementada após conexão com Supabase.')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Gerar Relatório (PDF)
+            </button>
+            <p class="text-sm text-gray-600 italic">"Os dados não substituem o diagnóstico médico."</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SECTION: REGISTER SYMPTOM ── -->
+    <section id="section-register-symptom" class="page-content hidden">
+      <div style="margin-bottom:2rem">
+        <h1 class="text-3xl font-bold text-gray-900" style="margin-bottom:0.5rem">Registrar Sintoma</h1>
+        <p class="text-gray-600">Registre seus sintomas para acompanhamento detalhado da sua saúde</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Novo Registro de Sintoma</h2></div>
+        <div class="card-content" style="padding-top:1.25rem">
+          <form id="form-symptom" class="space-y-6" novalidate>
+            <!-- Date -->
+            <div>
+              <label class="form-label">Data do Sintoma</label>
+              <div class="relative" id="date-picker-wrap">
+                <button type="button" class="date-display-btn" id="date-display-btn" onclick="toggleDatePicker()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span id="date-display-text">Selecione a data</span>
+                </button>
+                <div class="cal-popover" id="date-popover">
+                  <div class="mini-cal-nav">
+                    <button type="button" onclick="miniCalNav(-1)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span id="mini-cal-title" class="text-sm font-semibold text-gray-700"></span>
+                    <button type="button" onclick="miniCalNav(1)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  </div>
+                  <div class="mini-cal-grid" id="mini-cal-headers"></div>
+                  <div class="mini-cal-grid" id="mini-cal-days" style="margin-top:2px"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="form-label" for="sym-category">Categoria do Sintoma</label>
+              <select id="sym-category" class="input" onchange="validateSymptomForm()">
+                <option value="">Selecione a categoria</option>
+                <option>Febre</option><option>Cansaço</option><option>Dor de Cabeça</option>
+                <option>Náusea</option><option>Dor Muscular</option><option>Tosse</option>
+                <option>Dificuldade Respiratória</option><option>Dor Abdominal</option><option>Outro</option>
+              </select>
+            </div>
+
+            <!-- Intensity -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+                <label class="form-label" style="margin:0">Intensidade da Dor/Desconforto</label>
+                <span id="intensity-val" class="intensity-value">3</span>
+              </div>
+              <input type="range" class="range-slider" id="sym-intensity" min="1" max="5" step="1" value="3" oninput="document.getElementById('intensity-val').textContent=this.value">
+              <div class="intensity-labels">
+                <span>1 - Muito Leve</span><span>2 - Leve</span><span>3 - Moderado</span><span>4 - Forte</span><span>5 - Muito Forte</span>
+              </div>
+            </div>
+
+            <!-- Medication -->
+            <div>
+              <label class="form-label" for="sym-medication">Medicamentos Utilizados (opcional)</label>
+              <input id="sym-medication" class="input" type="text" placeholder="Ex: Paracetamol 500mg">
+            </div>
+
+            <!-- Triggers -->
+            <div>
+              <label class="form-label" for="sym-triggers">Possíveis Gatilhos (opcional)</label>
+              <input id="sym-triggers" class="input" type="text" placeholder="Ex: Exposição ao sol, estresse, alimentação">
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label class="form-label" for="sym-notes">Observações Adicionais (opcional)</label>
+              <textarea id="sym-notes" class="input" placeholder="Descreva qualquer informação adicional relevante..." rows="4"></textarea>
+            </div>
+
+            <div style="display:flex;gap:0.75rem">
+              <button type="submit" id="btn-save-symptom" class="btn btn-primary flex-1" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salvar Sintoma
+              </button>
+              <button type="button" class="btn btn-outline" onclick="showSection('dashboard', document.querySelector('[data-section=dashboard]'))">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <p class="text-sm text-blue-900"><strong>Dica:</strong> Registre seus sintomas diariamente para uma análise mais precisa. O sistema detectará automaticamente padrões de risco e emitirá alertas quando necessário.</p>
+      </div>
+    </section>
+
+    <!-- ── SECTION: HEALTH HISTORY ── -->
+    <section id="section-health-history" class="page-content hidden">
+      <div style="margin-bottom:2rem">
+        <h1 class="text-3xl font-bold text-gray-900" style="margin-bottom:0.5rem">Histórico de Saúde</h1>
+        <p class="text-gray-600">Visualize todos os seus registros de sintomas</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-content">
+          <div style="display:flex;flex-direction:column;gap:1rem">
+            <div class="relative flex-1">
+              <svg class="input-icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="history-search" class="input input-with-icon" type="text" placeholder="Buscar sintomas..." oninput="filterHistory()">
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;max-width:16rem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              <select id="history-filter" class="input" onchange="filterHistory()">
+                <option value="all">Todas as categorias</option>
+                <option>Febre</option><option>Cansaço</option><option>Dor de Cabeça</option><option>Náusea</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-bottom:2rem">
+        <div class="card stat-card"><div class="card-content"><div class="stat-num text-blue-600" id="stat-total">9</div><div class="stat-label">Total de Registros</div></div></div>
+        <div class="card stat-card"><div class="card-content"><div class="stat-num text-red-600" id="stat-fever">4</div><div class="stat-label">Episódios de Febre</div></div></div>
+        <div class="card stat-card"><div class="card-content"><div class="stat-num text-amber-600" id="stat-avg">3.2</div><div class="stat-label">Intensidade Média</div></div></div>
+        <div class="card stat-card"><div class="card-content"><div class="stat-num text-green-600">30</div><div class="stat-label">Dias Monitorados</div></div></div>
+      </div>
+
+      <!-- Records list -->
+      <div class="card">
+        <div class="card-content">
+          <h2 class="text-lg font-semibold" style="margin-bottom:1rem" id="history-count">Registros (9)</h2>
+          <div id="history-list" style="display:flex;flex-direction:column;gap:0.75rem"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SECTION: MEDICAL REPORTS ── -->
+    <section id="section-medical-reports" class="page-content hidden">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;flex-wrap:wrap;gap:1rem">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900" style="margin-bottom:0.5rem">Relatórios Médicos</h1>
+          <p class="text-gray-600">Gere e gerencie seus relatórios clínicos para compartilhar com médicos</p>
+        </div>
+        <button class="btn btn-primary" onclick="toast('Novo Relatório','Funcionalidade será implementada após conexão com Supabase.')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Relatório
+        </button>
+      </div>
+
+      <!-- Info box -->
+      <div class="card bg-blue-50" style="border-color:var(--blue-200);margin-bottom:2rem">
+        <div class="card-content">
+          <div style="display:flex;gap:0.75rem">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue-600)" stroke-width="2" style="flex-shrink:0;margin-top:0.125rem"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <h3 class="font-semibold text-blue-900" style="margin-bottom:0.5rem">Sobre os Relatórios Clínicos</h3>
+              <p class="text-sm text-blue-800">Os relatórios consolidam todos os seus registros de sintomas em um período específico, incluindo análises de padrões, alertas emitidos e gráficos evolutivos. São ideais para compartilhar com seu médico durante consultas, facilitando diagnósticos mais precisos.</p>
+              <p class="text-sm text-blue-800" style="margin-top:0.5rem;font-style:italic">"Os dados não substituem o diagnóstico médico."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports list -->
+      <div style="display:flex;flex-direction:column;gap:1rem" id="reports-list"></div>
+    </section>
+
+    <!-- ── SECTION: SETTINGS ── -->
+    <section id="section-settings" class="page-content hidden">
+      <div style="margin-bottom:2rem">
+        <h1 class="text-3xl font-bold text-gray-900" style="margin-bottom:0.5rem">Configurações</h1>
+        <p class="text-gray-600">Gerencie suas preferências e informações da conta</p>
+      </div>
+
+      <div class="settings-grid">
+        <!-- Profile -->
+        <div class="card">
+          <div class="card-header"><h2 class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Informações do Perfil</h2></div>
+          <div class="card-content" style="padding-top:1.25rem">
+            <form onsubmit="event.preventDefault();toast('Perfil','Perfil atualizado com sucesso!');" class="space-y-6">
+              <div style="display:flex;align-items:center;gap:1.5rem">
+                <div class="avatar avatar-lg">GM</div>
+                <div>
+                  <button type="button" class="btn btn-outline btn-sm">Alterar foto</button>
+                  <p class="text-xs text-gray-500" style="margin-top:0.5rem">JPG, PNG ou GIF. Máx. 2MB</p>
+                </div>
+              </div>
+              <hr class="separator">
+              <div class="settings-form-grid">
+                <div><label class="form-label">Nome completo</label><input class="input" type="text" value="Gabriel Monteiro"></div>
+                <div><label class="form-label">E-mail</label><input class="input" type="email" value="gabriel.monteiro@email.com"></div>
+                <div><label class="form-label">CPF</label><input class="input" type="text" value="123.456.789-00" disabled></div>
+                <div><label class="form-label">Telefone</label><input class="input" type="text" value="(11) 98765-4321"></div>
+                <div><label class="form-label">Data de nascimento</label><input class="input" type="date" value="1990-01-15"></div>
+                <div><label class="form-label">Gênero</label><input class="input" type="text" value="Feminino"></div>
+              </div>
+              <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+          <div class="card-header"><h2 class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notificações e Alertas</h2></div>
+          <div class="card-content" style="padding-top:1.25rem">
+            <form onsubmit="event.preventDefault();toast('Notificações','Preferências atualizadas!');" class="space-y-6">
+              <div class="space-y-4">
+                <div class="switch-wrap">
+                  <div><label class="form-label" style="margin:0">Alertas de padrões de risco</label><p class="text-sm text-gray-500">Receba notificações quando padrões de risco forem detectados</p></div>
+                  <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+                </div>
+                <hr class="separator">
+                <div class="switch-wrap">
+                  <div><label class="form-label" style="margin:0">Lembretes de registro diário</label><p class="text-sm text-gray-500">Lembrete para registrar seus sintomas diariamente</p></div>
+                  <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+                </div>
+                <hr class="separator">
+                <div class="switch-wrap">
+                  <div><label class="form-label" style="margin:0">Notificações por e-mail</label><p class="text-sm text-gray-500">Receba resumos semanais por e-mail</p></div>
+                  <label class="switch"><input type="checkbox"><span class="switch-track"></span></label>
+                </div>
+                <hr class="separator">
+                <div class="switch-wrap">
+                  <div><label class="form-label" style="margin:0">Notificações push</label><p class="text-sm text-gray-500">Receba notificações no navegador</p></div>
+                  <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Salvar preferências</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="card">
+          <div class="card-header"><h2 class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Segurança</h2></div>
+          <div class="card-content" style="padding-top:1.25rem">
+            <form onsubmit="event.preventDefault();toast('Senha','Senha alterada com sucesso!');" class="space-y-4">
+              <div><label class="form-label">Senha atual</label><input class="input" type="password"></div>
+              <div><label class="form-label">Nova senha</label><input class="input" type="password"></div>
+              <div><label class="form-label">Confirmar nova senha</label><input class="input" type="password"></div>
+              <button type="submit" class="btn btn-primary">Alterar senha</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="card danger-zone" style="border-color:var(--red-200)">
+          <div class="card-header"><h2 class="card-title danger-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red-600)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Zona de Perigo</h2></div>
+          <div class="card-content" style="padding-top:1.25rem">
+            <h4 class="font-medium text-gray-900" style="margin-bottom:0.25rem">Excluir conta</h4>
+            <p class="text-sm text-gray-600" style="margin-bottom:0.75rem">Ao excluir sua conta, todos os seus dados serão permanentemente removidos. Esta ação não pode ser desfeita.</p>
+            <button class="btn btn-destructive" onclick="toast('Aviso','Esta ação não pode ser desfeita.','error')">Excluir minha conta</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══ CLINICAL REPORT MODAL ══ -->
+<div class="modal-overlay" id="report-modal" onclick="closeReportModal(event)">
+  <div class="modal">
+    <div class="report-view-toolbar">
+      <button class="btn btn-outline btn-sm" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="toast('Download','Download em PDF será implementado após conexão com Supabase.')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="closeReportModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="report-view-body">
+      <div class="report-doc" id="report-doc-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════
+const symptomDays = [5,8,10,12,13,14,15];
+const evolutionData = [
+  { date: '10 Jun', Febre: 3, Cansaço: 1, Sintoma: 2 },
+  { date: '11 Jun', Febre: 4, Cansaço: 2, Sintoma: 1 },
+  { date: '12 Jun', Febre: 5, Cansaço: 3, Sintoma: 2 },
+  { date: '13 Jun', Febre: 4, Cansaço: 4, Sintoma: 3 },
+  { date: '13 Jun', Febre: 3, Cansaço: 3, Sintoma: 4 },
+  { date: '14 Jun', Febre: 2, Cansaço: 2, Sintoma: 3 },
+  { date: '15 Jun', Febre: 4, Cansaço: 1, Sintoma: 2 },
+];
+
+const mockHistory = [
+  { id:1, date:'2024-06-15', day:15, month:'Jun', category:'Febre', intensity:4, medication:'', triggers:'', notes:'Dor Muscular' },
+  { id:2, date:'2024-06-14', day:14, month:'Jun', category:'Cansaço', intensity:3, medication:'', triggers:'', notes:'' },
+  { id:3, date:'2024-06-13', day:13, month:'Jun', category:'Febre', intensity:5, medication:'Paracetamol 500mg', triggers:'', notes:'' },
+  { id:4, date:'2024-06-12', day:12, month:'Jun', category:'Febre', intensity:4, medication:'Paracetamol 500mg', triggers:'', notes:'' },
+  { id:5, date:'2024-06-10', day:10, month:'Jun', category:'Cansaço', intensity:2, medication:'', triggers:'', notes:'' },
+  { id:6, date:'2024-06-08', day:8, month:'Jun', category:'Febre', intensity:3, medication:'', triggers:'', notes:'' },
+  { id:7, date:'2024-06-05', day:5, month:'Jun', category:'Dor de Cabeça', intensity:2, medication:'', triggers:'Estresse', notes:'' },
+  { id:8, date:'2024-06-03', day:3, month:'Jun', category:'Náusea', intensity:3, medication:'', triggers:'Alimentação', notes:'' },
+  { id:9, date:'2024-06-01', day:1, month:'Jun', category:'Cansaço', intensity:2, medication:'', triggers:'', notes:'' },
+];
+
+const mockReports = [
+  { id:1, title:'Relatório Clínico - Junho 2024', createdAt:'15 de junho de 2024', period:'01/06/2024 - 15/06/2024', symptoms:7, alerts:1, status:'Gerado' },
+  { id:2, title:'Relatório Clínico - Maio 2024', createdAt:'31 de maio de 2024', period:'01/05/2024 - 31/05/2024', symptoms:12, alerts:0, status:'Gerado' },
+  { id:3, title:'Relatório Clínico - Abril 2024', createdAt:'30 de abril de 2024', period:'01/04/2024 - 30/04/2024', symptoms:5, alerts:0, status:'Gerado' },
+];
+
+const existingUsers = [
+  { cpf:'123.456.789-00', email:'gabriel.monteiro@email.com' },
+  { cpf:'987.654.321-00', email:'joao.santos@email.com' },
+];
+
+const categoryColors = {
+  'Febre':'badge-red','Cansaço':'badge-amber','Dor de Cabeça':'badge-purple',
+  'Náusea':'badge-green','Dor Muscular':'badge-blue','Tosse':'badge-cyan',
+};
+
+// ══════════════════════════════════════════════════
+// LOGO SVG
+// ══════════════════════════════════════════════════
+function logoSVG(variant='default') {
+  const c = variant==='white' ? '#ffffff' : '#3B82F6';
+  const inner = variant==='white' ? '#3B82F6' : '#ffffff';
+  return `<svg viewBox="0 0 40 40" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 4C11.163 4 4 11.163 4 20C4 28.837 11.163 36 20 36C28.837 36 36 28.837 36 20C36 11.163 28.837 4 20 4Z" fill="${c}" opacity="0.2"/>
+    <path d="M20 2C10.059 2 2 10.059 2 20C2 29.941 10.059 38 20 38C29.941 38 38 29.941 38 20C38 10.059 29.941 2 20 2ZM20 4C28.837 4 36 11.163 36 20C36 28.837 28.837 36 20 36C11.163 36 4 28.837 4 20C4 11.163 11.163 4 20 4Z" fill="${c}"/>
+    <path d="M20 8C15.6 8 12 11.6 12 16C12 19.2 14 21.9 16.8 23L16.8 28C16.8 29.1 17.7 30 18.8 30L21.2 30C22.3 30 23.2 29.1 23.2 28L23.2 23C26 21.9 28 19.2 28 16C28 11.6 24.4 8 20 8Z" fill="${c}"/>
+    <rect x="18" y="18" width="4" height="8" fill="${inner}"/>
+    <rect x="13" y="20" width="14" height="3" fill="${inner}"/>
+  </svg>`;
+}
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
+function toast(title, desc='', type='success') {
+  const cont = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<div><div class="toast-title">${title}</div>${desc?`<div class="toast-desc">${desc}</div>`:''}</div>`;
+  cont.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════
+function goToDashboard() {
+  document.getElementById('page-login').style.display = 'none';
+  document.getElementById('page-dashboard').classList.add('active');
+  initDashboard();
+}
+
+function logout() {
+  document.getElementById('page-dashboard').classList.remove('active');
+  document.getElementById('page-login').style.display = 'flex';
+}
+
+function showSection(name, btn) {
+  document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
+  document.getElementById(`section-${name}`).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  // Mobile: find the right nav btn
+  document.querySelectorAll(`[data-section="${name}"]`).forEach(b => b.classList.add('active'));
+}
+
+// ══════════════════════════════════════════════════
+// LOGIN TABS
+// ══════════════════════════════════════════════════
+function switchLoginTab(tab, btn) {
+  document.querySelectorAll('.tab-trigger').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════
+// PASSWORD TOGGLE
+// ══════════════════════════════════════════════════
+function togglePassword(id, btn) {
+  const inp = document.getElementById(id);
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  btn.innerHTML = isText
+    ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+}
+
+// ══════════════════════════════════════════════════
+// CPF FORMAT
+// ══════════════════════════════════════════════════
+function formatCPFInput(inp) {
+  let v = inp.value.replace(/\D/g,'');
+  if(v.length>11) v=v.slice(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2')
+        .replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3')
+        .replace(/\.(\d{3})(\d{1,2})$/,'.$1-$2');
+  inp.value = v;
+}
+
+function validateCPF(v) {
+  return v.replace(/\D/g,'').length === 11 ? '' : 'Digite um CPF válido (11 dígitos)';
+}
+function validateEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Insira um formato de e-mail válido (ex: nome@email.com)';
+}
+function validatePasswordStr(v) {
+  if(v.length < 8 || !/[a-zA-Z]/.test(v) || !/[0-9]/.test(v))
+    return 'A senha deve conter no mínimo 8 caracteres, incluindo letras e números';
+  return '';
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(msg) {
+    el.classList.remove('hidden');
+    el.querySelector('span').textContent = msg;
+    const inp = document.getElementById(id.replace('err-',''));
+    if(inp) inp.classList.add('error');
+  } else {
+    el.classList.add('hidden');
+    const inp = document.getElementById(id.replace('err-',''));
+    if(inp) inp.classList.remove('error');
+  }
+}
+
+function validateLoginForm() {
+  const cpf = document.getElementById('login-cpf').value;
+  const pass = document.getElementById('login-password').value;
+  const cpfErr = cpf ? validateCPF(cpf) : '';
+  const passErr = pass ? validatePasswordStr(pass) : '';
+  showError('err-login-cpf', cpfErr);
+  showError('err-login-password', passErr);
+  const valid = !cpfErr && !passErr && cpf && pass;
+  document.getElementById('btn-login').disabled = !valid;
+}
+
+function validateRegisterForm() {
+  const name = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const cpf = document.getElementById('reg-cpf').value;
+  const pass = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+
+  const nameErr = name ? '' : 'Este campo é obrigatório';
+  const emailErr = email ? validateEmail(email) : '';
+  const cpfErr = cpf ? validateCPF(cpf) : '';
+  const passErr = pass ? validatePasswordStr(pass) : '';
+  const confirmErr = confirm ? (confirm === pass ? '' : 'As senhas não coincidem') : '';
+
+  showError('err-reg-name', nameErr);
+  showError('err-reg-email', emailErr);
+  showError('err-reg-cpf', cpfErr);
+  showError('err-reg-password', passErr);
+  showError('err-reg-confirm', confirmErr);
+
+  const valid = !nameErr&&name && !emailErr&&email && !cpfErr&&cpf && !passErr&&pass && !confirmErr&&confirm;
+  document.getElementById('btn-register').disabled = !valid;
+}
+
+// Attach events
+document.getElementById('login-cpf').addEventListener('input', validateLoginForm);
+document.getElementById('login-password').addEventListener('input', validateLoginForm);
+['reg-name','reg-email','reg-cpf','reg-password','reg-confirm'].forEach(id => {
+  document.getElementById(id).addEventListener('input', validateRegisterForm);
+});
+
+document.getElementById('form-login').addEventListener('submit', function(e) {
+  e.preventDefault();
+  toast('Login realizado com sucesso!');
+  setTimeout(goToDashboard, 600);
+});
+
+document.getElementById('form-register').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const cpf = document.getElementById('reg-cpf').value;
+  const email = document.getElementById('reg-email').value;
+  const cpfExists = existingUsers.some(u => u.cpf === cpf);
+  const emailExists = existingUsers.some(u => u.email.toLowerCase() === email.toLowerCase());
+  if(cpfExists) { showError('err-reg-cpf','CPF já cadastrado no sistema'); return; }
+  if(emailExists) { showError('err-reg-email','E-mail já vinculado a uma conta'); return; }
+  toast('Cadastro realizado com sucesso!');
+  switchLoginTab('login', document.querySelector('.tabs-list .tab-trigger'));
+});
+
+// ══════════════════════════════════════════════════
+// DASHBOARD INIT
+// ══════════════════════════════════════════════════
+let chartInstance = null;
+function initDashboard() {
+  buildLogos();
+  buildCalendar();
+  buildChart();
+  buildHistoryList(mockHistory);
+  buildReportsList();
+  initMiniCal();
+}
+
+function buildLogos() {
+  ['logo-brand','logo-sidebar','logo-mobile'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = logoSVG(id==='logo-mobile'?'default':'white');
+  });
+}
+
+function buildCalendar() {
+  const headers = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const hCont = document.getElementById('cal-headers');
+  const dCont = document.getElementById('cal-days');
+  hCont.innerHTML = headers.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+
+  // June 2024 starts on Saturday (6)
+  const startDay = 6, daysInMonth = 30;
+  let html = '';
+  for(let i=0;i<startDay;i++) html += `<div></div>`;
+  for(let d=1;d<=daysInMonth;d++) {
+    const hasSym = symptomDays.includes(d);
+    html += `<div class="cal-day ${hasSym?'has-symptom':'normal'}">${d}</div>`;
+  }
+  dCont.innerHTML = html;
+}
+
+function buildChart() {
+  const ctx = document.getElementById('chart-evolution');
+  if(!ctx) return;
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: evolutionData.map(d=>d.date),
+      datasets: [
+        { label:'Febre', data: evolutionData.map(d=>d.Febre), borderColor:'#1e40af', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#1e40af', pointRadius:4 },
+        { label:'Cansaço', data: evolutionData.map(d=>d.Cansaço), borderColor:'#f59e0b', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#f59e0b', pointRadius:4 },
+        { label:'Sintoma', data: evolutionData.map(d=>d.Sintoma), borderColor:'#10b981', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#10b981', pointRadius:4 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: { labels: { font:{size:12} } }, tooltip: { backgroundColor:'#fff', titleColor:'#111827', bodyColor:'#4b5563', borderColor:'#e5e7eb', borderWidth:1 } },
+      scales: {
+        x: { ticks:{font:{size:11}}, grid:{color:'#e5e7eb'} },
+        y: { min:0, max:5, ticks:{font:{size:11}}, grid:{color:'#e5e7eb'}, title:{display:true,text:'Intensidade (0-5)',font:{size:11}} }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// HEALTH HISTORY
+// ══════════════════════════════════════════════════
+function filterHistory() {
+  const search = document.getElementById('history-search').value.toLowerCase();
+  const cat = document.getElementById('history-filter').value;
+  const filtered = mockHistory.filter(item => {
+    const matchSearch = item.category.toLowerCase().includes(search) || item.notes.toLowerCase().includes(search);
+    const matchCat = cat==='all' || item.category===cat;
+    return matchSearch && matchCat;
+  });
+  buildHistoryList(filtered);
+}
+
+function buildHistoryList(items) {
+  const cont = document.getElementById('history-list');
+  const count = document.getElementById('history-count');
+  count.textContent = `Registros (${items.length})`;
+  if(items.length===0) {
+    cont.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--gray-500)">Nenhum registro encontrado</div>`;
+    return;
+  }
+  cont.innerHTML = items.map(item => {
+    const badgeClass = categoryColors[item.category] || 'badge-gray';
+    const extras = [
+      item.medication && `<div><span class="font-medium">Medicamento:</span> ${item.medication}</div>`,
+      item.triggers && `<div><span class="font-medium">Gatilho:</span> ${item.triggers}</div>`,
+      item.notes && `<div><span class="font-medium">Observações:</span> ${item.notes}</div>`,
+    ].filter(Boolean).join('');
+    return `
+    <div class="history-item">
+      <div class="history-date">
+        <div class="day">${item.day}</div>
+        <div class="month">${item.month}</div>
+      </div>
+      <div class="history-divider"></div>
+      <div style="flex:1">
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.375rem">
+          <span class="badge ${badgeClass}">${item.category}</span>
+          <span class="badge badge-blue">Intensidade: ${item.intensity}/5</span>
+        </div>
+        <div class="text-sm text-gray-600 space-y-1">${extras}</div>
+      </div>
+      <div class="text-right text-xs text-gray-500">${item.day.toString().padStart(2,'0')}/${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].indexOf(item.month)+1+1}/2024</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// MEDICAL REPORTS
+// ══════════════════════════════════════════════════
+function buildReportsList() {
+  const cont = document.getElementById('reports-list');
+  cont.innerHTML = mockReports.map(r => `
+    <div class="card" style="transition:box-shadow 0.2s" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+      <div class="card-content">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+          <div style="display:flex;gap:1rem;flex:1">
+            <div class="report-card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue-600)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900" style="margin-bottom:0.25rem">${r.title}</h3>
+              <p class="text-sm text-gray-600" style="margin-bottom:0.75rem">Período: ${r.period}</p>
+              <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+                <span class="badge badge-green">${r.status}</span>
+                <span class="badge badge-gray">${r.symptoms} sintomas registrados</span>
+                ${r.alerts>0?`<span class="badge badge-amber">${r.alerts} alerta(s)</span>`:''}
+              </div>
+              <div class="text-xs text-gray-500" style="margin-top:0.75rem">Gerado em ${r.createdAt}</div>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-outline btn-sm" onclick="openReportModal(${r.id})">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Visualizar
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="toast('Download','Download do relatório ${r.id} será implementado após conexão com Supabase.')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// CLINICAL REPORT MODAL
+// ══════════════════════════════════════════════════
+let reportChartInstance = null;
+function openReportModal(reportId) {
+  const report = mockReports.find(r=>r.id===reportId);
+  const now = new Date().toLocaleDateString('pt-BR');
+  const nowTime = new Date().toLocaleString('pt-BR');
+
+  const symptomsTable = [
+    { date:'15/06/2024', symptom:'Febre', intensity:4, medication:'Paracetamol 500mg', observation:'Dor Muscular' },
+    { date:'14/06/2024', symptom:'Cansaço', intensity:3, medication:'-', observation:'-' },
+    { date:'13/06/2024', symptom:'Febre', intensity:5, medication:'Paracetamol 500mg', observation:'Mal-estar' },
+    { date:'12/06/2024', symptom:'Febre', intensity:4, medication:'Paracetamol 500mg', observation:'Febre alta' },
+    { date:'10/06/2024', symptom:'Cansaço', intensity:2, medication:'-', observation:'-' },
+    { date:'08/06/2024', symptom:'Febre', intensity:3, medication:'-', observation:'-' },
+  ];
+
+  document.getElementById('report-doc-content').innerHTML = `
+    <div class="report-doc-header">
+      <div style="display:flex;justify-content:center">${logoSVG('default')}<span style="font-size:1.25rem;font-weight:700;color:var(--gray-900);margin-left:0.5rem">SaúdeBrasil</span></div>
+      <h1>RELATÓRIO CLÍNICO DO PACIENTE</h1>
+    </div>
+    <div class="report-doc-body">
+      <div class="report-data-grid">
+        <div>
+          <div class="report-section-title">Dados do Paciente</div>
+          <div class="report-data-row"><span class="font-semibold">Paciente:</span> Gabriel Monteiro</div>
+          <div class="report-data-row"><span class="font-semibold">CPF:</span> 123.456.789-00</div>
+          <div class="report-data-row"><span class="font-semibold">Data Nasc:</span> 15/01/1990</div>
+          <div class="report-data-row"><span class="font-semibold">Gênero:</span> Feminino</div>
+          <div class="report-data-row"><span class="font-semibold">Contato:</span> (11) 98765-4321</div>
+          <div class="report-data-row"><span class="font-semibold">Endereço:</span> São Paulo/SP</div>
+        </div>
+        <div>
+          <div class="report-section-title">Dados do Relatório</div>
+          <div class="report-data-row"><span class="font-semibold">Período:</span> ${report.period}</div>
+          <div class="report-data-row"><span class="font-semibold">Total Sintomas:</span> 07</div>
+          <div class="report-data-row"><span class="font-semibold">CRM:</span> 123456-SP</div>
+          <div class="report-data-row"><span class="font-semibold">Médico:</span> Dr. Carlos Santos</div>
+          <div class="report-data-row"><span class="font-semibold">Data Emissão:</span> ${now}</div>
+          <div class="report-data-row"><span class="font-semibold">Código:</span> REL-${String(reportId).padStart(6,'0')}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--blue-50);border:1px solid var(--blue-200);border-radius:var(--radius);padding:1rem">
+        <div class="report-section-title">Resumo Executivo de Sintomas</div>
+        <p class="text-sm text-gray-700 leading-relaxed">Durante o período analisado (${report.period}), foram registrados 7 episódios de sintomas. O paciente apresentou febre persistente por 3 dias consecutivos (12-14/06), com intensidade variando entre 4 e 5 (escala 1-5). Foram registrados também episódios de cansaço e dor muscular associada. Medicação utilizada: Paracetamol 500mg nos dias 12, 13 e 15/06.</p>
+      </div>
+
+      <div>
+        <div class="report-section-title">Gráfico Evolutivo de Intensidade</div>
+        <div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:1rem">
+          <div style="height:220px;position:relative"><canvas id="report-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div style="background:var(--amber-50);border:1px solid var(--amber-200);border-radius:var(--radius);padding:1rem">
+        <div class="report-section-title" style="color:var(--amber-900)">Análise de Padrões Detectados</div>
+        <p class="text-sm text-gray-700" style="margin-bottom:0.5rem">⚠️ <span class="font-semibold">Febre Persistente:</span> Detectada febre por 3 dias consecutivos (12-14/06) com intensidade entre 4-5. Recomenda-se avaliação médica presencial.</p>
+        <p class="text-sm text-gray-700">ℹ️ <span class="font-semibold">Sintomas Associados:</span> Presença de cansaço e dor muscular no mesmo período, sugerindo possível quadro viral.</p>
+      </div>
+
+      <div>
+        <div class="report-section-title">Sintomas Registrados</div>
+        <div style="border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden">
+          <table class="report-table">
+            <thead><tr><th>Data/Hora</th><th>Sintoma</th><th style="text-align:center">Intensidade</th><th>Medicação</th><th>Observações Médicas</th></tr></thead>
+            <tbody>${symptomsTable.map((r,i)=>`<tr><td>${r.date}</td><td class="font-medium">${r.symptom}</td><td style="text-align:center"><span class="intensity-bubble">${r.intensity}</span></td><td>${r.medication}</td><td>${r.observation}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="report-section-title">Observações Médicas</div>
+        <div class="doctor-notes"><p class="text-sm text-gray-400 italic">Espaço para anotações do médico durante a consulta...</p></div>
+      </div>
+    </div>
+    <div class="report-doc-footer">
+      <p><span class="font-semibold">Data de Emissão:</span> ${nowTime}</p>
+      <p style="margin-top:0.5rem;font-style:italic;line-height:1.5">Este relatório foi gerado automaticamente pelo Sistema de Monitoramento e Análise de Sintomas (SMAS) - SaúdeBrasil. Os dados apresentados são baseados nos registros diários do paciente e não substituem avaliação médica presencial. Documento válido apenas com assinatura e carimbo médico.</p>
+    </div>`;
+
+  document.getElementById('report-modal').classList.add('open');
+
+  setTimeout(() => {
+    const ctx = document.getElementById('report-chart');
+    if(!ctx) return;
+    if(reportChartInstance) reportChartInstance.destroy();
+    reportChartInstance = new Chart(ctx, {
+      type:'line',
+      data: {
+        labels: evolutionData.map(d=>d.date),
+        datasets: [
+          { label:'Febre', data:evolutionData.map(d=>d.Febre), borderColor:'#1e40af', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#1e40af' },
+          { label:'Cansaço', data:evolutionData.map(d=>d.Cansaço), borderColor:'#f59e0b', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#f59e0b' },
+          { label:'Sintoma', data:evolutionData.map(d=>d.Sintoma), borderColor:'#10b981', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981' },
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{font:{size:11}}}, tooltip:{backgroundColor:'#fff',titleColor:'#111',bodyColor:'#555',borderColor:'#e5e7eb',borderWidth:1} },
+        scales:{
+          x:{ticks:{font:{size:10}},grid:{color:'#e5e7eb'}},
+          y:{min:0,max:5,ticks:{font:{size:10}},grid:{color:'#e5e7eb'},title:{display:true,text:'Intensidade (0-5)',font:{size:10}}}
+        }
+      }
+    });
+  }, 100);
+}
+
+function closeReportModal(e) {
+  if(!e || e.target === document.getElementById('report-modal')) {
+    document.getElementById('report-modal').classList.remove('open');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// REGISTER SYMPTOM
+// ══════════════════════════════════════════════════
+let selectedDate = new Date();
+let miniCalDate = new Date();
+
+function initMiniCal() {
+  const now = new Date();
+  selectedDate = now;
+  miniCalDate = new Date(now);
+  updateDateDisplay();
+  renderMiniCal();
+
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('date-picker-wrap');
+    if(wrap && !wrap.contains(e.target)) {
+      document.getElementById('date-popover').classList.remove('open');
+    }
+  });
+}
+
+function updateDateDisplay() {
+  const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const d = selectedDate;
+  document.getElementById('date-display-text').textContent = `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+function toggleDatePicker() {
+  document.getElementById('date-popover').classList.toggle('open');
+}
+
+function miniCalNav(dir) {
+  miniCalDate.setMonth(miniCalDate.getMonth() + dir);
+  renderMiniCal();
+}
+
+function renderMiniCal() {
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('mini-cal-title').textContent = `${months[miniCalDate.getMonth()]} ${miniCalDate.getFullYear()}`;
+
+  const headers = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  document.getElementById('mini-cal-headers').innerHTML = headers.map(h=>`<div class="mini-cal-header">${h}</div>`).join('');
+
+  const firstDay = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth(), 1).getDay();
+  const daysInMonth = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth()+1, 0).getDate();
+  let html = '';
+  for(let i=0;i<firstDay;i++) html += `<div></div>`;
+  for(let d=1;d<=daysInMonth;d++) {
+    const isSel = selectedDate.getDate()===d && selectedDate.getMonth()===miniCalDate.getMonth() && selectedDate.getFullYear()===miniCalDate.getFullYear();
+    html += `<button type="button" class="mini-cal-day${isSel?' selected':''}" onclick="selectDate(${d})">${d}</button>`;
+  }
+  document.getElementById('mini-cal-days').innerHTML = html;
+}
+
+function selectDate(d) {
+  selectedDate = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth(), d);
+  updateDateDisplay();
+  renderMiniCal();
+  document.getElementById('date-popover').classList.remove('open');
+}
+
+function validateSymptomForm() {
+  const cat = document.getElementById('sym-category').value;
+  document.getElementById('btn-save-symptom').disabled = !cat;
+}
+
+document.getElementById('form-symptom').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const cat = document.getElementById('sym-category').value;
+  const intensity = document.getElementById('sym-intensity').value;
+  const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const d = selectedDate;
+  const dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+  toast('Sintoma registrado com sucesso!', `${cat} - Intensidade ${intensity} em ${dateStr}`);
+  document.getElementById('sym-category').value = '';
+  document.getElementById('sym-intensity').value = 3;
+  document.getElementById('intensity-val').textContent = '3';
+  document.getElementById('sym-medication').value = '';
+  document.getElementById('sym-triggers').value = '';
+  document.getElementById('sym-notes').value = '';
+  document.getElementById('btn-save-symptom').disabled = true;
+  setTimeout(() => showSection('dashboard', document.querySelector('[data-section="dashboard"]')), 1200);
+});
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+window.addEventListener('load', function() {
+  // Set logos on login page
+  const lb = document.getElementById('logo-brand');
+  const lm = document.getElementById('logo-mobile');
+  if(lb) lb.innerHTML = logoSVG('white');
+  if(lm) lm.innerHTML = logoSVG('default');
+});
+</script>
+</body>
+</html>

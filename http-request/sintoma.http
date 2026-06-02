@@ -1,0 +1,45 @@
+### Cadastrar sintoma
+POST http://localhost:8080/api/sintomas
+Content-Type: application/json
+
+{
+  "tipo": "Dor de cabeça",
+  "intensidade": 3,
+  "medicamentos": "Paracetamol",
+  "gatilhos": "Estresse",
+  "obs": "Piora à noite",
+  "dataRegistro": "2026-06-02",
+  "usuario": {
+    "idUsuario": 1
+  }
+}
+
+###
+
+### Buscar sintoma por ID
+GET http://localhost:8080/api/sintomas/1
+
+###
+
+### Buscar sintomas do usuário
+GET http://localhost:8080/api/sintomas/usuario/1
+
+###
+
+### Editar sintoma
+PUT http://localhost:8080/api/sintomas/1
+Content-Type: application/json
+
+{
+  "tipo": "Enxaqueca",
+  "intensidade": 5,
+  "medicamentos": "Dipirona",
+  "gatilhos": "Luz forte",
+  "obs": "Melhorou após repouso",
+  "dataRegistro": "2026-06-02"
+}
+
+###
+
+### Excluir sintoma
+DELETE http://localhost:8080/api/sintomas/1
