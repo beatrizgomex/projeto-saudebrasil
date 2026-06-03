@@ -1020,53 +1020,43 @@
 
 <script>
 // ══════════════════════════════════════════════════
-// DATA
+// CONFIGURAÇÃO DA API
 // ══════════════════════════════════════════════════
-const symptomDays = [5,8,10,12,13,14,15];
-const evolutionData = [
-  { date: '10 Jun', Febre: 3, Cansaço: 1, Sintoma: 2 },
-  { date: '11 Jun', Febre: 4, Cansaço: 2, Sintoma: 1 },
-  { date: '12 Jun', Febre: 5, Cansaço: 3, Sintoma: 2 },
-  { date: '13 Jun', Febre: 4, Cansaço: 4, Sintoma: 3 },
-  { date: '13 Jun', Febre: 3, Cansaço: 3, Sintoma: 4 },
-  { date: '14 Jun', Febre: 2, Cansaço: 2, Sintoma: 3 },
-  { date: '15 Jun', Febre: 4, Cansaço: 1, Sintoma: 2 },
-];
+const API_BASE = 'http://localhost:8080/api';
 
-const mockHistory = [
-  { id:1, date:'2024-06-15', day:15, month:'Jun', category:'Febre', intensity:4, medication:'', triggers:'', notes:'Dor Muscular' },
-  { id:2, date:'2024-06-14', day:14, month:'Jun', category:'Cansaço', intensity:3, medication:'', triggers:'', notes:'' },
-  { id:3, date:'2024-06-13', day:13, month:'Jun', category:'Febre', intensity:5, medication:'Paracetamol 500mg', triggers:'', notes:'' },
-  { id:4, date:'2024-06-12', day:12, month:'Jun', category:'Febre', intensity:4, medication:'Paracetamol 500mg', triggers:'', notes:'' },
-  { id:5, date:'2024-06-10', day:10, month:'Jun', category:'Cansaço', intensity:2, medication:'', triggers:'', notes:'' },
-  { id:6, date:'2024-06-08', day:8, month:'Jun', category:'Febre', intensity:3, medication:'', triggers:'', notes:'' },
-  { id:7, date:'2024-06-05', day:5, month:'Jun', category:'Dor de Cabeça', intensity:2, medication:'', triggers:'Estresse', notes:'' },
-  { id:8, date:'2024-06-03', day:3, month:'Jun', category:'Náusea', intensity:3, medication:'', triggers:'Alimentação', notes:'' },
-  { id:9, date:'2024-06-01', day:1, month:'Jun', category:'Cansaço', intensity:2, medication:'', triggers:'', notes:'' },
-];
+// ── Usuário logado (salvo em memória de sessão) ──
+let currentUser = null; // { idUsuario, nome, email, cpf }
+let userSintomas = [];  // cache local dos sintomas vindos da API
 
-const mockReports = [
-  { id:1, title:'Relatório Clínico - Junho 2024', createdAt:'15 de junho de 2024', period:'01/06/2024 - 15/06/2024', symptoms:7, alerts:1, status:'Gerado' },
-  { id:2, title:'Relatório Clínico - Maio 2024', createdAt:'31 de maio de 2024', period:'01/05/2024 - 31/05/2024', symptoms:12, alerts:0, status:'Gerado' },
-  { id:3, title:'Relatório Clínico - Abril 2024', createdAt:'30 de abril de 2024', period:'01/04/2024 - 30/04/2024', symptoms:5, alerts:0, status:'Gerado' },
-];
+// ══════════════════════════════════════════════════
+// CAMADA HTTP – wrapper centralizado
+// ══════════════════════════════════════════════════
+async function api(method, path, body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body) opts.body = JSON.stringify(body);
 
-const existingUsers = [
-  { cpf:'123.456.789-00', email:'gabriel.monteiro@email.com' },
-  { cpf:'987.654.321-00', email:'joao.santos@email.com' },
-];
+  const res = await fetch(`${API_BASE}${path}`, opts);
 
-const categoryColors = {
-  'Febre':'badge-red','Cansaço':'badge-amber','Dor de Cabeça':'badge-purple',
-  'Náusea':'badge-green','Dor Muscular':'badge-blue','Tosse':'badge-cyan',
-};
+  // Tenta extrair JSON mesmo em erro (Spring devolve mensagem no body)
+  let data = null;
+  try { data = await res.json(); } catch (_) {}
+
+  if (!res.ok) {
+    const msg = data?.message || data?.detail || `Erro ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
 
 // ══════════════════════════════════════════════════
 // LOGO SVG
 // ══════════════════════════════════════════════════
-function logoSVG(variant='default') {
-  const c = variant==='white' ? '#ffffff' : '#3B82F6';
-  const inner = variant==='white' ? '#3B82F6' : '#ffffff';
+function logoSVG(variant = 'default') {
+  const c     = variant === 'white' ? '#ffffff' : '#3B82F6';
+  const inner = variant === 'white' ? '#3B82F6' : '#ffffff';
   return `<svg viewBox="0 0 40 40" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M20 4C11.163 4 4 11.163 4 20C4 28.837 11.163 36 20 36C28.837 36 36 28.837 36 20C36 11.163 28.837 4 20 4Z" fill="${c}" opacity="0.2"/>
     <path d="M20 2C10.059 2 2 10.059 2 20C2 29.941 10.059 38 20 38C29.941 38 38 29.941 38 20C38 10.059 29.941 2 20 2ZM20 4C28.837 4 36 11.163 36 20C36 28.837 28.837 36 20 36C11.163 36 4 28.837 4 20C4 11.163 11.163 4 20 4Z" fill="${c}"/>
@@ -1079,17 +1069,27 @@ function logoSVG(variant='default') {
 // ══════════════════════════════════════════════════
 // TOAST
 // ══════════════════════════════════════════════════
-function toast(title, desc='', type='success') {
+function toast(title, desc = '', type = 'success') {
   const cont = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = `toast ${type}`;
-  el.innerHTML = `<div><div class="toast-title">${title}</div>${desc?`<div class="toast-desc">${desc}</div>`:''}</div>`;
+  el.innerHTML = `<div><div class="toast-title">${title}</div>${desc ? `<div class="toast-desc">${desc}</div>` : ''}</div>`;
   cont.appendChild(el);
-  setTimeout(() => el.remove(), 3500);
+  setTimeout(() => el.remove(), 4000);
 }
 
 // ══════════════════════════════════════════════════
-// NAVIGATION
+// LOADING STATE
+// ══════════════════════════════════════════════════
+function setLoading(btnId, loading, originalText) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Aguarde...' : originalText;
+}
+
+// ══════════════════════════════════════════════════
+// NAVEGAÇÃO
 // ══════════════════════════════════════════════════
 function goToDashboard() {
   document.getElementById('page-login').style.display = 'none';
@@ -1098,21 +1098,30 @@ function goToDashboard() {
 }
 
 function logout() {
+  currentUser = null;
+  userSintomas = [];
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
   document.getElementById('page-dashboard').classList.remove('active');
   document.getElementById('page-login').style.display = 'flex';
+  // Limpa os campos do login
+  document.getElementById('login-cpf').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('btn-login').disabled = true;
 }
 
 function showSection(name, btn) {
   document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
   document.getElementById(`section-${name}`).classList.remove('hidden');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  // Mobile: find the right nav btn
+  if (btn) btn.classList.add('active');
   document.querySelectorAll(`[data-section="${name}"]`).forEach(b => b.classList.add('active'));
+
+  // Ao entrar no histórico, recarrega da API
+  if (name === 'health-history') renderHistoryFromCache();
 }
 
 // ══════════════════════════════════════════════════
-// LOGIN TABS
+// TABS DE LOGIN
 // ══════════════════════════════════════════════════
 function switchLoginTab(tab, btn) {
   document.querySelectorAll('.tab-trigger').forEach(b => b.classList.remove('active'));
@@ -1122,7 +1131,7 @@ function switchLoginTab(tab, btn) {
 }
 
 // ══════════════════════════════════════════════════
-// PASSWORD TOGGLE
+// TOGGLE PASSWORD VISIBILITY
 // ══════════════════════════════════════════════════
 function togglePassword(id, btn) {
   const inp = document.getElementById(id);
@@ -1134,196 +1143,472 @@ function togglePassword(id, btn) {
 }
 
 // ══════════════════════════════════════════════════
-// CPF FORMAT
+// VALIDAÇÕES
 // ══════════════════════════════════════════════════
 function formatCPFInput(inp) {
-  let v = inp.value.replace(/\D/g,'');
-  if(v.length>11) v=v.slice(0,11);
-  v = v.replace(/(\d{3})(\d)/,'$1.$2')
-        .replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3')
-        .replace(/\.(\d{3})(\d{1,2})$/,'.$1-$2');
+  let v = inp.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.slice(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2')
+       .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+       .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
   inp.value = v;
 }
 
 function validateCPF(v) {
-  return v.replace(/\D/g,'').length === 11 ? '' : 'Digite um CPF válido (11 dígitos)';
+  return v.replace(/\D/g, '').length === 11 ? '' : 'Digite um CPF válido (11 dígitos)';
 }
-function validateEmail(v) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Insira um formato de e-mail válido (ex: nome@email.com)';
+function validateEmailStr(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Insira um formato de e-mail válido';
 }
 function validatePasswordStr(v) {
-  if(v.length < 8 || !/[a-zA-Z]/.test(v) || !/[0-9]/.test(v))
+  if (v.length < 8 || !/[a-zA-Z]/.test(v) || !/[0-9]/.test(v))
     return 'A senha deve conter no mínimo 8 caracteres, incluindo letras e números';
   return '';
 }
 
 function showError(id, msg) {
   const el = document.getElementById(id);
-  if(!el) return;
-  if(msg) {
+  if (!el) return;
+  if (msg) {
     el.classList.remove('hidden');
     el.querySelector('span').textContent = msg;
-    const inp = document.getElementById(id.replace('err-',''));
-    if(inp) inp.classList.add('error');
+    const inp = document.getElementById(id.replace('err-', ''));
+    if (inp) inp.classList.add('error');
   } else {
     el.classList.add('hidden');
-    const inp = document.getElementById(id.replace('err-',''));
-    if(inp) inp.classList.remove('error');
+    const inp = document.getElementById(id.replace('err-', ''));
+    if (inp) inp.classList.remove('error');
   }
 }
 
+// ── Login usa: CPF + senha (backend usa email+senha, mas o frontend
+//    identifica pelo CPF → mandamos o CPF como "email" se o back aceitar,
+//    porém o UsuarioController /login espera { email, senha }.
+//    Como o frontend tem campo CPF no login, vamos aceitar CPF ou email.
+//    Para compatibilidade direta com a API, o campo de login vai aceitar
+//    e-mail. Ajustamos o placeholder abaixo via JS. ──
 function validateLoginForm() {
-  const cpf = document.getElementById('login-cpf').value;
-  const pass = document.getElementById('login-password').value;
-  const cpfErr = cpf ? validateCPF(cpf) : '';
-  const passErr = pass ? validatePasswordStr(pass) : '';
-  showError('err-login-cpf', cpfErr);
+  const emailOrCpf = document.getElementById('login-cpf').value;
+  const pass       = document.getElementById('login-password').value;
+  // aceita e-mail válido OU CPF válido
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrCpf);
+  const isCpf   = emailOrCpf.replace(/\D/g,'').length === 11;
+  const fieldErr = emailOrCpf ? (isEmail || isCpf ? '' : 'Digite um e-mail ou CPF válido') : '';
+  const passErr  = pass ? validatePasswordStr(pass) : '';
+  showError('err-login-cpf', fieldErr);
   showError('err-login-password', passErr);
-  const valid = !cpfErr && !passErr && cpf && pass;
+  const valid = !fieldErr && !passErr && emailOrCpf && pass;
   document.getElementById('btn-login').disabled = !valid;
 }
 
 function validateRegisterForm() {
-  const name = document.getElementById('reg-name').value;
-  const email = document.getElementById('reg-email').value;
-  const cpf = document.getElementById('reg-cpf').value;
-  const pass = document.getElementById('reg-password').value;
+  const name    = document.getElementById('reg-name').value;
+  const email   = document.getElementById('reg-email').value;
+  const cpf     = document.getElementById('reg-cpf').value;
+  const pass    = document.getElementById('reg-password').value;
   const confirm = document.getElementById('reg-confirm').value;
 
-  const nameErr = name ? '' : 'Este campo é obrigatório';
-  const emailErr = email ? validateEmail(email) : '';
-  const cpfErr = cpf ? validateCPF(cpf) : '';
-  const passErr = pass ? validatePasswordStr(pass) : '';
+  const nameErr    = name    ? '' : 'Este campo é obrigatório';
+  const emailErr   = email   ? validateEmailStr(email)   : '';
+  const cpfErr     = cpf     ? validateCPF(cpf)          : '';
+  const passErr    = pass    ? validatePasswordStr(pass)  : '';
   const confirmErr = confirm ? (confirm === pass ? '' : 'As senhas não coincidem') : '';
 
-  showError('err-reg-name', nameErr);
-  showError('err-reg-email', emailErr);
-  showError('err-reg-cpf', cpfErr);
-  showError('err-reg-password', passErr);
+  showError('err-reg-name',    nameErr);
+  showError('err-reg-email',   emailErr);
+  showError('err-reg-cpf',     cpfErr);
+  showError('err-reg-password',passErr);
   showError('err-reg-confirm', confirmErr);
 
   const valid = !nameErr&&name && !emailErr&&email && !cpfErr&&cpf && !passErr&&pass && !confirmErr&&confirm;
   document.getElementById('btn-register').disabled = !valid;
 }
 
-// Attach events
+// ══════════════════════════════════════════════════
+// FORMULÁRIO DE LOGIN → POST /api/usuario/login
+// ══════════════════════════════════════════════════
 document.getElementById('login-cpf').addEventListener('input', validateLoginForm);
 document.getElementById('login-password').addEventListener('input', validateLoginForm);
+
+document.getElementById('form-login').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const emailInput = document.getElementById('login-cpf').value.trim();
+  const senha      = document.getElementById('login-password').value;
+
+  setLoading('btn-login', true, 'Entrar');
+  try {
+    // A API espera { email, senha }
+    const usuario = await api('POST', '/usuario/login', { email: emailInput, senha });
+    currentUser = usuario; // { idUsuario, nome, email, cpf, senha }
+    toast(`Bem-vindo, ${usuario.nome}!`);
+    setTimeout(goToDashboard, 500);
+  } catch (err) {
+    toast('Erro ao entrar', err.message, 'error');
+  } finally {
+    setLoading('btn-login', false, 'Entrar');
+    document.getElementById('btn-login').disabled = false;
+    validateLoginForm();
+  }
+});
+
+// ══════════════════════════════════════════════════
+// FORMULÁRIO DE CADASTRO → POST /api/usuario
+// ══════════════════════════════════════════════════
 ['reg-name','reg-email','reg-cpf','reg-password','reg-confirm'].forEach(id => {
   document.getElementById(id).addEventListener('input', validateRegisterForm);
 });
 
-document.getElementById('form-login').addEventListener('submit', function(e) {
+document.getElementById('form-register').addEventListener('submit', async function (e) {
   e.preventDefault();
-  toast('Login realizado com sucesso!');
-  setTimeout(goToDashboard, 600);
-});
+  const nome  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const cpf   = document.getElementById('reg-cpf').value.replace(/\D/g,''); // só números
+  const senha = document.getElementById('reg-password').value;
 
-document.getElementById('form-register').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const cpf = document.getElementById('reg-cpf').value;
-  const email = document.getElementById('reg-email').value;
-  const cpfExists = existingUsers.some(u => u.cpf === cpf);
-  const emailExists = existingUsers.some(u => u.email.toLowerCase() === email.toLowerCase());
-  if(cpfExists) { showError('err-reg-cpf','CPF já cadastrado no sistema'); return; }
-  if(emailExists) { showError('err-reg-email','E-mail já vinculado a uma conta'); return; }
-  toast('Cadastro realizado com sucesso!');
-  switchLoginTab('login', document.querySelector('.tabs-list .tab-trigger'));
+  setLoading('btn-register', true, 'Cadastrar');
+  try {
+    await api('POST', '/usuario', { nome, email, cpf, senha });
+    toast('Cadastro realizado com sucesso!', 'Faça login para continuar.');
+    // Limpa campos
+    ['reg-name','reg-email','reg-cpf','reg-password','reg-confirm'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('btn-register').disabled = true;
+    switchLoginTab('login', document.querySelector('.tabs-list .tab-trigger'));
+  } catch (err) {
+    // Erros específicos mapeados para os campos
+    const msg = err.message;
+    if (msg.toLowerCase().includes('cpf')) {
+      showError('err-reg-cpf', msg);
+    } else if (msg.toLowerCase().includes('email')) {
+      showError('err-reg-email', msg);
+    } else if (msg.toLowerCase().includes('gmail')) {
+      showError('err-reg-email', 'O e-mail deve ser um Gmail (@gmail.com)');
+    } else {
+      toast('Erro no cadastro', msg, 'error');
+    }
+  } finally {
+    setLoading('btn-register', false, 'Cadastrar');
+    validateRegisterForm();
+  }
 });
 
 // ══════════════════════════════════════════════════
 // DASHBOARD INIT
 // ══════════════════════════════════════════════════
 let chartInstance = null;
-function initDashboard() {
+
+async function initDashboard() {
   buildLogos();
-  buildCalendar();
-  buildChart();
-  buildHistoryList(mockHistory);
-  buildReportsList();
   initMiniCal();
+  updateUserUI();
+
+  // Busca sintomas do usuário logado na API
+  await loadSintomas();
+
+  buildCalendarFromData();
+  buildChart();
+  buildLastRecords();
+  buildHistoryList(userSintomas);
+  buildReportsList();
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  // Nome no header do dashboard
+  const headerEl = document.querySelector('#section-dashboard h1');
+  if (headerEl) headerEl.textContent = `Bem-vindo, ${currentUser.nome}!`;
+
+  // Sidebar – avatar e nome
+  const sidebarName = document.querySelector('.sidebar-user-card p.text-sm');
+  if (sidebarName) sidebarName.textContent = currentUser.nome;
+
+  // Iniciais do avatar
+  const initials = currentUser.nome.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+  document.querySelectorAll('.avatar').forEach(el => {
+    if (el.textContent.trim() === 'GM' || el.classList.contains('avatar')) el.textContent = initials;
+  });
+
+  // Settings – pré-preenche campos
+  const s = id => document.getElementById(id);
+  if (s('settings-name'))  s('settings-name').value  = currentUser.nome;
+  if (s('settings-email')) s('settings-email').value = currentUser.email;
+  if (s('settings-cpf'))   s('settings-cpf').value   = formatCPFDisplay(currentUser.cpf);
+}
+
+function formatCPFDisplay(cpf) {
+  const v = String(cpf).replace(/\D/g,'');
+  return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
 
 function buildLogos() {
   ['logo-brand','logo-sidebar','logo-mobile'].forEach(id => {
     const el = document.getElementById(id);
-    if(el) el.innerHTML = logoSVG(id==='logo-mobile'?'default':'white');
+    if (el) el.innerHTML = logoSVG(id === 'logo-mobile' ? 'default' : 'white');
   });
 }
 
-function buildCalendar() {
-  const headers = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+// ══════════════════════════════════════════════════
+// CARREGAR SINTOMAS DA API → GET /api/sintomas/usuario/{id}
+// ══════════════════════════════════════════════════
+async function loadSintomas() {
+  if (!currentUser) return;
+  try {
+    const data = await api('GET', `/sintomas/usuario/${currentUser.idUsuario}`);
+    // Normaliza para o formato interno do front
+    userSintomas = data.map(s => normalizeSintoma(s));
+    checkAlerts();
+  } catch (err) {
+    toast('Aviso', 'Não foi possível carregar os sintomas: ' + err.message, 'error');
+    userSintomas = [];
+  }
+}
+
+// Converte objeto da API { idSintoma, tipo, intensidade, medicamentos, gatilhos, obs, dataRegistro, usuario }
+// para o formato do front { id, date, day, month, category, intensity, medication, triggers, notes }
+function normalizeSintoma(s) {
+  const dateObj = new Date(s.dataRegistro + 'T00:00:00');
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return {
+    id:         s.idSintoma,
+    date:       s.dataRegistro,                   // "YYYY-MM-DD"
+    day:        dateObj.getDate(),
+    month:      monthNames[dateObj.getMonth()],
+    year:       dateObj.getFullYear(),
+    category:   s.tipo,
+    intensity:  s.intensidade,
+    medication: s.medicamentos || '',
+    triggers:   s.gatilhos || '',
+    notes:      s.obs || '',
+    raw:        s,                                // objeto original para edição/exclusão
+  };
+}
+
+// ══════════════════════════════════════════════════
+// ALERTAS AUTOMÁTICOS
+// ══════════════════════════════════════════════════
+function checkAlerts() {
+  const alertEl = document.querySelector('#section-dashboard .alert-amber');
+  if (!alertEl) return;
+
+  // Detecta febre em 3+ dias consecutivos (nos últimos 7 dias)
+  const today = new Date();
+  const last7 = userSintomas.filter(s => {
+    const d = new Date(s.date + 'T00:00:00');
+    return (today - d) <= 7 * 86400000;
+  });
+  const febreDays = [...new Set(
+    last7.filter(s => s.category.toLowerCase().includes('febre')).map(s => s.date)
+  )];
+
+  if (febreDays.length >= 3) {
+    alertEl.style.display = 'flex';
+    alertEl.querySelector('div').innerHTML =
+      `<strong>ALERTA DO SISTEMA:</strong> Padrão detectado – Febre registrada por ${febreDays.length} dias nos últimos 7 dias. Considere consultar seu médico.`;
+  } else if (userSintomas.length === 0) {
+    alertEl.style.display = 'none';
+  } else {
+    alertEl.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// CALENDÁRIO DINÂMICO (mês atual dos sintomas)
+// ══════════════════════════════════════════════════
+function buildCalendarFromData() {
   const hCont = document.getElementById('cal-headers');
   const dCont = document.getElementById('cal-days');
+  const titleEl = document.querySelector('#section-dashboard h2.text-lg');
+
+  const today = new Date();
+  const year  = today.getFullYear();
+  const month = today.getMonth();
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const monthNamesShort = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Atualiza título do card
+  if (titleEl) titleEl.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Calendário de Sintomas (${monthNames[month]} ${year})`;
+
+  // Atualiza sub-título do calendário
+  const calTitle = document.querySelector('#section-dashboard .card .card-content div[style*="text-align:center"]');
+  if (calTitle) calTitle.textContent = `${monthNames[month]} ${year}`;
+
+  const daysWithSymptom = new Set(
+    userSintomas
+      .filter(s => {
+        const d = new Date(s.date + 'T00:00:00');
+        return d.getFullYear() === year && d.getMonth() === month;
+      })
+      .map(s => s.day)
+  );
+
+  const headers = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   hCont.innerHTML = headers.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
 
-  // June 2024 starts on Saturday (6)
-  const startDay = 6, daysInMonth = 30;
+  const startDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
   let html = '';
-  for(let i=0;i<startDay;i++) html += `<div></div>`;
-  for(let d=1;d<=daysInMonth;d++) {
-    const hasSym = symptomDays.includes(d);
-    html += `<div class="cal-day ${hasSym?'has-symptom':'normal'}">${d}</div>`;
+  for (let i=0;i<startDay;i++) html += `<div></div>`;
+  for (let d=1;d<=daysInMonth;d++) {
+    const has = daysWithSymptom.has(d);
+    html += `<div class="cal-day ${has?'has-symptom':'normal'}">${d}</div>`;
   }
   dCont.innerHTML = html;
 }
 
+// ══════════════════════════════════════════════════
+// GRÁFICO EVOLUTIVO (últimos 30 dias, agrupado por tipo)
+// ══════════════════════════════════════════════════
+const CHART_COLORS = ['#1e40af','#f59e0b','#10b981','#ef4444','#8b5cf6','#06b6d4'];
+
 function buildChart() {
   const ctx = document.getElementById('chart-evolution');
-  if(!ctx) return;
-  if(chartInstance) chartInstance.destroy();
+  if (!ctx) return;
+  if (chartInstance) chartInstance.destroy();
+
+  // Pega os últimos 14 dias com sintomas
+  const sorted = [...userSintomas].sort((a,b)=> a.date.localeCompare(b.date));
+  const last14 = sorted.slice(-14);
+
+  if (last14.length === 0) {
+    chartInstance = new Chart(ctx, {
+      type:'line', data:{ labels:[], datasets:[] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} } }
+    });
+    return;
+  }
+
+  // Labels = datas únicas
+  const labels = [...new Set(last14.map(s => s.date))].sort();
+  // Tipos únicos
+  const tipos  = [...new Set(last14.map(s => s.category))];
+
+  const datasets = tipos.map((tipo, i) => ({
+    label: tipo,
+    data: labels.map(date => {
+      const entry = last14.find(s => s.date === date && s.category === tipo);
+      return entry ? entry.intensity : null;
+    }),
+    borderColor: CHART_COLORS[i % CHART_COLORS.length],
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    pointBackgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+    pointRadius: 4,
+    spanGaps: false,
+  }));
+
+  // Formata labels para "dd/MM"
+  const shortLabels = labels.map(d => {
+    const [y,m,day] = d.split('-');
+    return `${day}/${m}`;
+  });
+
   chartInstance = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels: evolutionData.map(d=>d.date),
-      datasets: [
-        { label:'Febre', data: evolutionData.map(d=>d.Febre), borderColor:'#1e40af', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#1e40af', pointRadius:4 },
-        { label:'Cansaço', data: evolutionData.map(d=>d.Cansaço), borderColor:'#f59e0b', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#f59e0b', pointRadius:4 },
-        { label:'Sintoma', data: evolutionData.map(d=>d.Sintoma), borderColor:'#10b981', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#10b981', pointRadius:4 },
-      ]
-    },
+    data: { labels: shortLabels, datasets },
     options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend: { labels: { font:{size:12} } }, tooltip: { backgroundColor:'#fff', titleColor:'#111827', bodyColor:'#4b5563', borderColor:'#e5e7eb', borderWidth:1 } },
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { font:{size:12} } },
+        tooltip: { backgroundColor:'#fff', titleColor:'#111827', bodyColor:'#4b5563', borderColor:'#e5e7eb', borderWidth:1 }
+      },
       scales: {
         x: { ticks:{font:{size:11}}, grid:{color:'#e5e7eb'} },
-        y: { min:0, max:5, ticks:{font:{size:11}}, grid:{color:'#e5e7eb'}, title:{display:true,text:'Intensidade (0-5)',font:{size:11}} }
+        y: { min:0, max:5, ticks:{font:{size:11}}, grid:{color:'#e5e7eb'},
+             title:{display:true, text:'Intensidade (0-5)', font:{size:11}} }
       }
     }
   });
 }
 
 // ══════════════════════════════════════════════════
-// HEALTH HISTORY
+// ÚLTIMOS REGISTROS (card do dashboard)
 // ══════════════════════════════════════════════════
+const BORDER_COLORS = { Febre:'blue', Cansaço:'amber', 'Dor de Cabeça':'purple',
+  Náusea:'green', 'Dor Muscular':'blue', Tosse:'cyan' };
+
+function buildLastRecords() {
+  const cont = document.querySelector('#section-dashboard .records-list');
+  if (!cont) return;
+  const last = [...userSintomas].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  if (last.length === 0) {
+    cont.innerHTML = `<p class="text-sm text-gray-500">Nenhum sintoma registrado ainda.</p>`;
+    return;
+  }
+  const borderColorClass = s => BORDER_COLORS[s.category] || 'blue';
+  cont.innerHTML = last.map(s => `
+    <div class="record-item ${borderColorClass(s)}">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+        <span class="font-semibold text-gray-900">${s.day}</span>
+        <span class="text-sm text-gray-500">${s.month}</span>
+      </div>
+      <div class="font-medium text-gray-900">${s.category}</div>
+      <div class="text-sm text-gray-600">Intensidade ${s.intensity}${s.notes ? ', ' + s.notes : ''}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// HISTÓRICO DE SAÚDE
+// ══════════════════════════════════════════════════
+const categoryColors = {
+  'Febre':'badge-red','Cansaço':'badge-amber','Dor de Cabeça':'badge-purple',
+  'Náusea':'badge-green','Dor Muscular':'badge-blue','Tosse':'badge-cyan',
+};
+
+function renderHistoryFromCache() {
+  filterHistory();
+  updateStats();
+}
+
+function updateStats() {
+  const total  = userSintomas.length;
+  const febre  = userSintomas.filter(s => s.category === 'Febre').length;
+  const avgInt = total > 0
+    ? Math.round(userSintomas.reduce((acc,s)=>acc+s.intensity,0)/total*10)/10
+    : 0;
+
+  const el = id => document.getElementById(id);
+  if (el('stat-total')) el('stat-total').textContent = total;
+  if (el('stat-fever')) el('stat-fever').textContent = febre;
+  if (el('stat-avg'))   el('stat-avg').textContent   = avgInt;
+}
+
 function filterHistory() {
-  const search = document.getElementById('history-search').value.toLowerCase();
-  const cat = document.getElementById('history-filter').value;
-  const filtered = mockHistory.filter(item => {
-    const matchSearch = item.category.toLowerCase().includes(search) || item.notes.toLowerCase().includes(search);
-    const matchCat = cat==='all' || item.category===cat;
+  const search = (document.getElementById('history-search')?.value || '').toLowerCase();
+  const cat    = document.getElementById('history-filter')?.value || 'all';
+  const filtered = userSintomas.filter(item => {
+    const matchSearch = item.category.toLowerCase().includes(search)
+                     || item.notes.toLowerCase().includes(search);
+    const matchCat    = cat === 'all' || item.category === cat;
     return matchSearch && matchCat;
   });
   buildHistoryList(filtered);
 }
 
 function buildHistoryList(items) {
-  const cont = document.getElementById('history-list');
+  const cont  = document.getElementById('history-list');
   const count = document.getElementById('history-count');
-  count.textContent = `Registros (${items.length})`;
-  if(items.length===0) {
+  const sorted = [...items].sort((a,b)=>b.date.localeCompare(a.date));
+  if (count) count.textContent = `Registros (${sorted.length})`;
+  if (!cont) return;
+
+  if (sorted.length === 0) {
     cont.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--gray-500)">Nenhum registro encontrado</div>`;
     return;
   }
-  cont.innerHTML = items.map(item => {
+  cont.innerHTML = sorted.map(item => {
     const badgeClass = categoryColors[item.category] || 'badge-gray';
     const extras = [
       item.medication && `<div><span class="font-medium">Medicamento:</span> ${item.medication}</div>`,
-      item.triggers && `<div><span class="font-medium">Gatilho:</span> ${item.triggers}</div>`,
-      item.notes && `<div><span class="font-medium">Observações:</span> ${item.notes}</div>`,
+      item.triggers   && `<div><span class="font-medium">Gatilho:</span> ${item.triggers}</div>`,
+      item.notes      && `<div><span class="font-medium">Observações:</span> ${item.notes}</div>`,
     ].filter(Boolean).join('');
+    const dateDisplay = `${String(item.day).padStart(2,'0')}/${String(['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].indexOf(item.month)+1).padStart(2,'0')}/${item.year||''}`;
     return `
-    <div class="history-item">
+    <div class="history-item" id="history-item-${item.id}">
       <div class="history-date">
         <div class="day">${item.day}</div>
         <div class="month">${item.month}</div>
@@ -1336,98 +1621,165 @@ function buildHistoryList(items) {
         </div>
         <div class="text-sm text-gray-600 space-y-1">${extras}</div>
       </div>
-      <div class="text-right text-xs text-gray-500">${item.day.toString().padStart(2,'0')}/${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].indexOf(item.month)+1+1}/2024</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem">
+        <div class="text-right text-xs text-gray-500">${dateDisplay}</div>
+        <button class="btn btn-outline btn-sm" style="color:var(--red-600);border-color:var(--red-200)"
+          onclick="deleteSintoma(${item.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+          Excluir
+        </button>
+      </div>
     </div>`;
   }).join('');
 }
 
 // ══════════════════════════════════════════════════
-// MEDICAL REPORTS
+// EXCLUIR SINTOMA → DELETE /api/sintomas/{id}
+// ══════════════════════════════════════════════════
+async function deleteSintoma(id) {
+  if (!confirm('Confirma a exclusão deste registro?')) return;
+  try {
+    await api('DELETE', `/sintomas/${id}`);
+    userSintomas = userSintomas.filter(s => s.id !== id);
+    toast('Registro excluído com sucesso!');
+    filterHistory();
+    updateStats();
+    buildCalendarFromData();
+    buildChart();
+    buildLastRecords();
+    checkAlerts();
+  } catch (err) {
+    toast('Erro ao excluir', err.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// RELATÓRIOS (baseados nos sintomas reais do usuário)
 // ══════════════════════════════════════════════════
 function buildReportsList() {
   const cont = document.getElementById('reports-list');
-  cont.innerHTML = mockReports.map(r => `
-    <div class="card" style="transition:box-shadow 0.2s" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+  if (!cont) return;
+
+  // Agrupa sintomas por mês/ano para gerar "relatórios"
+  const groups = {};
+  userSintomas.forEach(s => {
+    const key = s.date.slice(0,7); // "YYYY-MM"
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(s);
+  });
+
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const sorted = Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+
+  if (sorted.length === 0) {
+    cont.innerHTML = `
+      <div class="card"><div class="card-content" style="padding:3rem;text-align:center">
+        <p class="text-gray-500">Nenhum sintoma registrado. Registre sintomas para gerar relatórios.</p>
+      </div></div>`;
+    return;
+  }
+
+  cont.innerHTML = sorted.map(key => {
+    const [y, m] = key.split('-');
+    const items  = groups[key];
+    const febreCount = items.filter(s=>s.category==='Febre').length;
+    const title  = `Relatório Clínico – ${monthNames[parseInt(m)-1]} ${y}`;
+    const firstDay = items.map(s=>s.date).sort()[0].slice(8);
+    const lastDay  = items.map(s=>s.date).sort().reverse()[0].slice(8);
+    const period   = `${firstDay}/${m}/${y} - ${lastDay}/${m}/${y}`;
+    const alerts   = febreCount >= 3 ? 1 : 0;
+    return `
+    <div class="card" style="transition:box-shadow 0.2s"
+         onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
       <div class="card-content">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
           <div style="display:flex;gap:1rem;flex:1">
             <div class="report-card-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue-600)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue-600)" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900" style="margin-bottom:0.25rem">${r.title}</h3>
-              <p class="text-sm text-gray-600" style="margin-bottom:0.75rem">Período: ${r.period}</p>
+              <h3 class="font-semibold text-gray-900" style="margin-bottom:0.25rem">${title}</h3>
+              <p class="text-sm text-gray-600" style="margin-bottom:0.75rem">Período: ${period}</p>
               <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
-                <span class="badge badge-green">${r.status}</span>
-                <span class="badge badge-gray">${r.symptoms} sintomas registrados</span>
-                ${r.alerts>0?`<span class="badge badge-amber">${r.alerts} alerta(s)</span>`:''}
+                <span class="badge badge-green">Gerado</span>
+                <span class="badge badge-gray">${items.length} sintomas registrados</span>
+                ${alerts>0?`<span class="badge badge-amber">${alerts} alerta(s)</span>`:''}
               </div>
-              <div class="text-xs text-gray-500" style="margin-top:0.75rem">Gerado em ${r.createdAt}</div>
             </div>
           </div>
           <div class="report-actions">
-            <button class="btn btn-outline btn-sm" onclick="openReportModal(${r.id})">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <button class="btn btn-outline btn-sm" onclick="openReportModal('${key}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
               Visualizar
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="toast('Download','Download do relatório ${r.id} será implementado após conexão com Supabase.')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download PDF
             </button>
           </div>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════════════
-// CLINICAL REPORT MODAL
+// MODAL DE RELATÓRIO CLÍNICO (dados reais)
 // ══════════════════════════════════════════════════
 let reportChartInstance = null;
-function openReportModal(reportId) {
-  const report = mockReports.find(r=>r.id===reportId);
-  const now = new Date().toLocaleDateString('pt-BR');
-  const nowTime = new Date().toLocaleString('pt-BR');
 
-  const symptomsTable = [
-    { date:'15/06/2024', symptom:'Febre', intensity:4, medication:'Paracetamol 500mg', observation:'Dor Muscular' },
-    { date:'14/06/2024', symptom:'Cansaço', intensity:3, medication:'-', observation:'-' },
-    { date:'13/06/2024', symptom:'Febre', intensity:5, medication:'Paracetamol 500mg', observation:'Mal-estar' },
-    { date:'12/06/2024', symptom:'Febre', intensity:4, medication:'Paracetamol 500mg', observation:'Febre alta' },
-    { date:'10/06/2024', symptom:'Cansaço', intensity:2, medication:'-', observation:'-' },
-    { date:'08/06/2024', symptom:'Febre', intensity:3, medication:'-', observation:'-' },
-  ];
+function openReportModal(key) {
+  const [y, m] = key.split('-');
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const items  = userSintomas.filter(s => s.date.startsWith(key))
+                             .sort((a,b)=>b.date.localeCompare(a.date));
+  const firstDay = items.map(s=>s.date).sort()[0]?.slice(8);
+  const lastDay  = items.map(s=>s.date).sort().reverse()[0]?.slice(8);
+  const period   = `${firstDay}/${m}/${y} - ${lastDay}/${m}/${y}`;
+  const now      = new Date().toLocaleDateString('pt-BR');
+  const nowTime  = new Date().toLocaleString('pt-BR');
+  const febreCount = items.filter(s=>s.category==='Febre').length;
+
+  // Gráfico do relatório: agrupa por data
+  const labels   = [...new Set(items.map(s=>s.date))].sort();
+  const tipos    = [...new Set(items.map(s=>s.category))];
+  const shortLbl = labels.map(d=>{ const p=d.split('-'); return `${p[2]}/${p[1]}`; });
 
   document.getElementById('report-doc-content').innerHTML = `
     <div class="report-doc-header">
-      <div style="display:flex;justify-content:center">${logoSVG('default')}<span style="font-size:1.25rem;font-weight:700;color:var(--gray-900);margin-left:0.5rem">SaúdeBrasil</span></div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:0.5rem">
+        ${logoSVG('default')}
+        <span style="font-size:1.25rem;font-weight:700;color:var(--gray-900)">SaúdeBrasil</span>
+      </div>
       <h1>RELATÓRIO CLÍNICO DO PACIENTE</h1>
     </div>
     <div class="report-doc-body">
       <div class="report-data-grid">
         <div>
           <div class="report-section-title">Dados do Paciente</div>
-          <div class="report-data-row"><span class="font-semibold">Paciente:</span> Gabriel Monteiro</div>
-          <div class="report-data-row"><span class="font-semibold">CPF:</span> 123.456.789-00</div>
-          <div class="report-data-row"><span class="font-semibold">Data Nasc:</span> 15/01/1990</div>
-          <div class="report-data-row"><span class="font-semibold">Gênero:</span> Feminino</div>
-          <div class="report-data-row"><span class="font-semibold">Contato:</span> (11) 98765-4321</div>
-          <div class="report-data-row"><span class="font-semibold">Endereço:</span> São Paulo/SP</div>
+          <div class="report-data-row"><span class="font-semibold">Paciente:</span> ${currentUser.nome}</div>
+          <div class="report-data-row"><span class="font-semibold">CPF:</span> ${formatCPFDisplay(currentUser.cpf)}</div>
+          <div class="report-data-row"><span class="font-semibold">E-mail:</span> ${currentUser.email}</div>
         </div>
         <div>
           <div class="report-section-title">Dados do Relatório</div>
-          <div class="report-data-row"><span class="font-semibold">Período:</span> ${report.period}</div>
-          <div class="report-data-row"><span class="font-semibold">Total Sintomas:</span> 07</div>
-          <div class="report-data-row"><span class="font-semibold">CRM:</span> 123456-SP</div>
-          <div class="report-data-row"><span class="font-semibold">Médico:</span> Dr. Carlos Santos</div>
-          <div class="report-data-row"><span class="font-semibold">Data Emissão:</span> ${now}</div>
-          <div class="report-data-row"><span class="font-semibold">Código:</span> REL-${String(reportId).padStart(6,'0')}</div>
+          <div class="report-data-row"><span class="font-semibold">Período:</span> ${period}</div>
+          <div class="report-data-row"><span class="font-semibold">Total de Sintomas:</span> ${items.length}</div>
+          <div class="report-data-row"><span class="font-semibold">Data de Emissão:</span> ${now}</div>
+          <div class="report-data-row"><span class="font-semibold">Código:</span> REL-${key.replace('-','')}</div>
         </div>
       </div>
 
       <div style="background:var(--blue-50);border:1px solid var(--blue-200);border-radius:var(--radius);padding:1rem">
-        <div class="report-section-title">Resumo Executivo de Sintomas</div>
-        <p class="text-sm text-gray-700 leading-relaxed">Durante o período analisado (${report.period}), foram registrados 7 episódios de sintomas. O paciente apresentou febre persistente por 3 dias consecutivos (12-14/06), com intensidade variando entre 4 e 5 (escala 1-5). Foram registrados também episódios de cansaço e dor muscular associada. Medicação utilizada: Paracetamol 500mg nos dias 12, 13 e 15/06.</p>
+        <div class="report-section-title">Resumo Executivo</div>
+        <p class="text-sm text-gray-700 leading-relaxed">
+          Durante ${monthNames[parseInt(m)-1]} de ${y}, foram registrados <strong>${items.length} episódio(s)</strong> de sintomas.
+          ${febreCount>0?`Foram identificados <strong>${febreCount} registro(s) de Febre</strong>.`:''}
+          ${febreCount>=3?` Padrão de febre persistente detectado – recomenda-se avaliação médica.`:''}
+        </p>
       </div>
 
       <div>
@@ -1437,18 +1789,26 @@ function openReportModal(reportId) {
         </div>
       </div>
 
+      ${febreCount>=3 ? `
       <div style="background:var(--amber-50);border:1px solid var(--amber-200);border-radius:var(--radius);padding:1rem">
         <div class="report-section-title" style="color:var(--amber-900)">Análise de Padrões Detectados</div>
-        <p class="text-sm text-gray-700" style="margin-bottom:0.5rem">⚠️ <span class="font-semibold">Febre Persistente:</span> Detectada febre por 3 dias consecutivos (12-14/06) com intensidade entre 4-5. Recomenda-se avaliação médica presencial.</p>
-        <p class="text-sm text-gray-700">ℹ️ <span class="font-semibold">Sintomas Associados:</span> Presença de cansaço e dor muscular no mesmo período, sugerindo possível quadro viral.</p>
-      </div>
+        <p class="text-sm text-gray-700">⚠️ <span class="font-semibold">Febre Recorrente:</span> Detectados ${febreCount} registros de febre no período. Recomenda-se avaliação médica presencial.</p>
+      </div>` : ''}
 
       <div>
         <div class="report-section-title">Sintomas Registrados</div>
         <div style="border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden">
           <table class="report-table">
-            <thead><tr><th>Data/Hora</th><th>Sintoma</th><th style="text-align:center">Intensidade</th><th>Medicação</th><th>Observações Médicas</th></tr></thead>
-            <tbody>${symptomsTable.map((r,i)=>`<tr><td>${r.date}</td><td class="font-medium">${r.symptom}</td><td style="text-align:center"><span class="intensity-bubble">${r.intensity}</span></td><td>${r.medication}</td><td>${r.observation}</td></tr>`).join('')}</tbody>
+            <thead><tr><th>Data</th><th>Sintoma</th><th style="text-align:center">Intensidade</th><th>Medicação</th><th>Observações</th></tr></thead>
+            <tbody>${items.map(s=>`
+              <tr>
+                <td>${String(s.day).padStart(2,'0')}/${m}/${y}</td>
+                <td class="font-medium">${s.category}</td>
+                <td style="text-align:center"><span class="intensity-bubble">${s.intensity}</span></td>
+                <td>${s.medication||'-'}</td>
+                <td>${s.notes||s.triggers||'-'}</td>
+              </tr>`).join('')}
+            </tbody>
           </table>
         </div>
       </div>
@@ -1460,27 +1820,34 @@ function openReportModal(reportId) {
     </div>
     <div class="report-doc-footer">
       <p><span class="font-semibold">Data de Emissão:</span> ${nowTime}</p>
-      <p style="margin-top:0.5rem;font-style:italic;line-height:1.5">Este relatório foi gerado automaticamente pelo Sistema de Monitoramento e Análise de Sintomas (SMAS) - SaúdeBrasil. Os dados apresentados são baseados nos registros diários do paciente e não substituem avaliação médica presencial. Documento válido apenas com assinatura e carimbo médico.</p>
+      <p style="margin-top:0.5rem;font-style:italic;line-height:1.5">Este relatório foi gerado automaticamente pelo Sistema SaúdeBrasil. Os dados são baseados nos registros do paciente e não substituem avaliação médica. Documento válido apenas com assinatura e carimbo médico.</p>
     </div>`;
 
   document.getElementById('report-modal').classList.add('open');
 
   setTimeout(() => {
     const ctx = document.getElementById('report-chart');
-    if(!ctx) return;
-    if(reportChartInstance) reportChartInstance.destroy();
+    if (!ctx) return;
+    if (reportChartInstance) reportChartInstance.destroy();
     reportChartInstance = new Chart(ctx, {
-      type:'line',
+      type: 'line',
       data: {
-        labels: evolutionData.map(d=>d.date),
-        datasets: [
-          { label:'Febre', data:evolutionData.map(d=>d.Febre), borderColor:'#1e40af', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#1e40af' },
-          { label:'Cansaço', data:evolutionData.map(d=>d.Cansaço), borderColor:'#f59e0b', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#f59e0b' },
-          { label:'Sintoma', data:evolutionData.map(d=>d.Sintoma), borderColor:'#10b981', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981' },
-        ]
+        labels: shortLbl,
+        datasets: tipos.map((tipo, i) => ({
+          label: tipo,
+          data: labels.map(date => {
+            const e = items.find(s => s.date === date && s.category === tipo);
+            return e ? e.intensity : null;
+          }),
+          borderColor: CHART_COLORS[i % CHART_COLORS.length],
+          backgroundColor: 'transparent',
+          borderWidth: 2, pointRadius: 3,
+          pointBackgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+          spanGaps: false,
+        }))
       },
       options: {
-        responsive:true, maintainAspectRatio:false,
+        responsive: true, maintainAspectRatio: false,
         plugins:{ legend:{labels:{font:{size:11}}}, tooltip:{backgroundColor:'#fff',titleColor:'#111',bodyColor:'#555',borderColor:'#e5e7eb',borderWidth:1} },
         scales:{
           x:{ticks:{font:{size:10}},grid:{color:'#e5e7eb'}},
@@ -1492,40 +1859,43 @@ function openReportModal(reportId) {
 }
 
 function closeReportModal(e) {
-  if(!e || e.target === document.getElementById('report-modal')) {
+  if (!e || e.target === document.getElementById('report-modal')) {
     document.getElementById('report-modal').classList.remove('open');
   }
 }
 
 // ══════════════════════════════════════════════════
-// REGISTER SYMPTOM
+// REGISTRAR SINTOMA → POST /api/sintomas
 // ══════════════════════════════════════════════════
 let selectedDate = new Date();
-let miniCalDate = new Date();
+let miniCalDate  = new Date();
 
 function initMiniCal() {
-  const now = new Date();
-  selectedDate = now;
-  miniCalDate = new Date(now);
+  selectedDate = new Date();
+  miniCalDate  = new Date();
   updateDateDisplay();
   renderMiniCal();
 
-  document.addEventListener('click', function(e) {
-    const wrap = document.getElementById('date-picker-wrap');
-    if(wrap && !wrap.contains(e.target)) {
-      document.getElementById('date-popover').classList.remove('open');
-    }
-  });
+  // Fecha o popover ao clicar fora (registra só uma vez)
+  if (!window._calListenerAttached) {
+    window._calListenerAttached = true;
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('date-picker-wrap');
+      if (wrap && !wrap.contains(e.target))
+        document.getElementById('date-popover')?.classList.remove('open');
+    });
+  }
 }
 
 function updateDateDisplay() {
   const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const d = selectedDate;
-  document.getElementById('date-display-text').textContent = `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
+  const el = document.getElementById('date-display-text');
+  if (el) el.textContent = `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
 function toggleDatePicker() {
-  document.getElementById('date-popover').classList.toggle('open');
+  document.getElementById('date-popover')?.classList.toggle('open');
 }
 
 function miniCalNav(dir) {
@@ -1535,61 +1905,124 @@ function miniCalNav(dir) {
 
 function renderMiniCal() {
   const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('mini-cal-title').textContent = `${months[miniCalDate.getMonth()]} ${miniCalDate.getFullYear()}`;
+  const titleEl = document.getElementById('mini-cal-title');
+  if (titleEl) titleEl.textContent = `${months[miniCalDate.getMonth()]} ${miniCalDate.getFullYear()}`;
 
   const headers = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  document.getElementById('mini-cal-headers').innerHTML = headers.map(h=>`<div class="mini-cal-header">${h}</div>`).join('');
+  const hEl = document.getElementById('mini-cal-headers');
+  if (hEl) hEl.innerHTML = headers.map(h=>`<div class="mini-cal-header">${h}</div>`).join('');
 
-  const firstDay = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth(), 1).getDay();
+  const firstDay    = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth(), 1).getDay();
   const daysInMonth = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth()+1, 0).getDate();
   let html = '';
-  for(let i=0;i<firstDay;i++) html += `<div></div>`;
-  for(let d=1;d<=daysInMonth;d++) {
-    const isSel = selectedDate.getDate()===d && selectedDate.getMonth()===miniCalDate.getMonth() && selectedDate.getFullYear()===miniCalDate.getFullYear();
+  for (let i=0;i<firstDay;i++) html += `<div></div>`;
+  for (let d=1;d<=daysInMonth;d++) {
+    const isSel = selectedDate.getDate()===d
+               && selectedDate.getMonth()===miniCalDate.getMonth()
+               && selectedDate.getFullYear()===miniCalDate.getFullYear();
     html += `<button type="button" class="mini-cal-day${isSel?' selected':''}" onclick="selectDate(${d})">${d}</button>`;
   }
-  document.getElementById('mini-cal-days').innerHTML = html;
+  const dEl = document.getElementById('mini-cal-days');
+  if (dEl) dEl.innerHTML = html;
 }
 
 function selectDate(d) {
   selectedDate = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth(), d);
   updateDateDisplay();
   renderMiniCal();
-  document.getElementById('date-popover').classList.remove('open');
+  document.getElementById('date-popover')?.classList.remove('open');
 }
 
 function validateSymptomForm() {
-  const cat = document.getElementById('sym-category').value;
-  document.getElementById('btn-save-symptom').disabled = !cat;
+  const cat = document.getElementById('sym-category')?.value;
+  const btn = document.getElementById('btn-save-symptom');
+  if (btn) btn.disabled = !cat;
 }
 
-document.getElementById('form-symptom').addEventListener('submit', function(e) {
+document.getElementById('form-symptom').addEventListener('submit', async function (e) {
   e.preventDefault();
-  const cat = document.getElementById('sym-category').value;
-  const intensity = document.getElementById('sym-intensity').value;
-  const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const d = selectedDate;
-  const dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
-  toast('Sintoma registrado com sucesso!', `${cat} - Intensidade ${intensity} em ${dateStr}`);
-  document.getElementById('sym-category').value = '';
-  document.getElementById('sym-intensity').value = 3;
-  document.getElementById('intensity-val').textContent = '3';
-  document.getElementById('sym-medication').value = '';
-  document.getElementById('sym-triggers').value = '';
-  document.getElementById('sym-notes').value = '';
-  document.getElementById('btn-save-symptom').disabled = true;
-  setTimeout(() => showSection('dashboard', document.querySelector('[data-section="dashboard"]')), 1200);
+  if (!currentUser) { toast('Sessão expirada','Faça login novamente.','error'); return; }
+
+  const tipo        = document.getElementById('sym-category').value;
+  const intensidade = parseInt(document.getElementById('sym-intensity').value);
+  const medicamentos= document.getElementById('sym-medication').value.trim() || null;
+  const gatilhos    = document.getElementById('sym-triggers').value.trim()   || null;
+  const obs         = document.getElementById('sym-notes').value.trim()      || null;
+
+  // Formata data como "YYYY-MM-DD"
+  const pad = n => String(n).padStart(2,'0');
+  const dataRegistro = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth()+1)}-${pad(selectedDate.getDate())}`;
+
+  const body = {
+    tipo, intensidade, medicamentos, gatilhos, obs,
+    dataRegistro,
+    usuario: { idUsuario: currentUser.idUsuario }
+  };
+
+  setLoading('btn-save-symptom', true, 'Salvar Sintoma');
+  try {
+    const criado = await api('POST', '/sintomas', body);
+    // Adiciona ao cache local
+    userSintomas.push(normalizeSintoma(criado));
+
+    toast('Sintoma registrado!', `${tipo} – Intensidade ${intensidade} em ${dataRegistro.split('-').reverse().join('/')}`);
+
+    // Limpa formulário
+    document.getElementById('sym-category').value  = '';
+    document.getElementById('sym-intensity').value = 3;
+    document.getElementById('intensity-val').textContent = '3';
+    document.getElementById('sym-medication').value = '';
+    document.getElementById('sym-triggers').value   = '';
+    document.getElementById('sym-notes').value      = '';
+    document.getElementById('btn-save-symptom').disabled = true;
+    selectedDate = new Date();
+    updateDateDisplay();
+
+    // Atualiza views
+    buildCalendarFromData();
+    buildChart();
+    buildLastRecords();
+    buildReportsList();
+    checkAlerts();
+
+    setTimeout(() => showSection('dashboard', document.querySelector('[data-section="dashboard"]')), 1200);
+  } catch (err) {
+    toast('Erro ao registrar sintoma', err.message, 'error');
+  } finally {
+    setLoading('btn-save-symptom', false, 'Salvar Sintoma');
+    validateSymptomForm();
+  }
 });
 
 // ══════════════════════════════════════════════════
-// INIT
+// SETTINGS – salva perfil → não há endpoint de PUT /usuario no back
+// (exibe feedback ao usuário sobre limitação)
 // ══════════════════════════════════════════════════
-window.addEventListener('load', function() {
-  // Set logos on login page
+function initSettingsForm() {
+  // Preenche com dados do usuário atual
+  const s = id => document.getElementById(id);
+  if (s('settings-name'))  s('settings-name').value  = currentUser?.nome  || '';
+  if (s('settings-email')) s('settings-email').value = currentUser?.email || '';
+  if (s('settings-cpf'))   s('settings-cpf').value   = currentUser?.cpf   ? formatCPFDisplay(currentUser.cpf) : '';
+}
+
+// ══════════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ══════════════════════════════════════════════════
+window.addEventListener('load', function () {
   const lb = document.getElementById('logo-brand');
   const lm = document.getElementById('logo-mobile');
-  if(lb) lb.innerHTML = logoSVG('white');
-  if(lm) lm.innerHTML = logoSVG('default');
+  if (lb) lb.innerHTML = logoSVG('white');
+  if (lm) lm.innerHTML = logoSVG('default');
+
+  // Ajusta placeholder do campo de login para deixar claro que aceita e-mail
+  const cpfField = document.getElementById('login-cpf');
+  if (cpfField) {
+    cpfField.placeholder = 'E-mail (ex: nome@gmail.com)';
+    cpfField.removeAttribute('oninput'); // remove máscara de CPF
+  }
+  const cpfLabel = document.querySelector('label[for="login-cpf"]');
+  if (cpfLabel) cpfLabel.textContent = 'E-mail';
 });
 </script>
 </body>
