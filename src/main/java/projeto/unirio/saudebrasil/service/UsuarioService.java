@@ -63,4 +63,46 @@ public class UsuarioService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Usuária não encontrada com ID: " + idUsuario));
     }
+
+    public Usuario atualizarPerfil(Long id, Usuario usuarioNovosDados) {
+
+        Usuario usuarioAntigo = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuário não encontrado"
+                ));
+
+        if(usuarioNovosDados.getNome() != null) {
+            usuarioAntigo.setNome(usuarioNovosDados.getNome());
+        }
+
+        if(usuarioNovosDados.getEmail() != null) {
+            usuarioAntigo.setEmail(usuarioNovosDados.getEmail());
+        }
+
+        if(usuarioNovosDados.getSenha() != null) {
+            usuarioAntigo.setSenha(usuarioNovosDados.getSenha());
+        }
+
+        if(usuarioNovosDados.getTelefone() != null) {
+            usuarioAntigo.setTelefone(usuarioNovosDados.getTelefone());
+        }
+
+        if(usuarioNovosDados.getGenero() != null) {
+            usuarioAntigo.setGenero(usuarioNovosDados.getGenero());
+        }
+
+        return usuarioRepository.save(usuarioAntigo);
+    }
+
+    public void excluirPerfil(Long id) {
+        if (!usuarioRepository.existsById(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Usuário não encontrado"
+            );
+        }
+        usuarioRepository.deleteById(id);
+    }
+
 }

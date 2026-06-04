@@ -1,6 +1,7 @@
 package projeto.unirio.saudebrasil.entitys;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -18,7 +19,7 @@ public class Usuario {
     @Column(nullable = false)
     private String nome;
 
-    @Column(nullable = false, name = "email", unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false, unique = true)
@@ -27,4 +28,12 @@ public class Usuario {
     @Column(nullable = false)
     private String senha;
 
+    @Column(nullable = false)
+    private LocalDate dataNascimento;
+
+    @Column(nullable = false)
+    private String telefone;
+
+    @Column(nullable = false)
+    private String genero;
 }

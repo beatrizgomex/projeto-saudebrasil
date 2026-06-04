@@ -41,4 +41,16 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+        Usuario usuarioAtualizado = usuarioService.atualizarPerfil(id, usuario);
+        return ResponseEntity.ok(usuarioAtualizado);
+    }
+
+    @DeleteMapping(("/{id}"))
+    public ResponseEntity<Void> excluirPerfil(@PathVariable Long id) {
+        usuarioService.excluirPerfil(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
