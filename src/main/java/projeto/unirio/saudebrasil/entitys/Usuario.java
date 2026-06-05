@@ -1,4 +1,6 @@
 package projeto.unirio.saudebrasil.entitys;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -8,10 +10,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "usuario")
-
 @Entity
+@Table(name = "usuario")
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idUsuario;
@@ -25,9 +27,12 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String cpf;
 
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String senha;
 
+  
     @Column(nullable = false)
     private LocalDate dataNascimento;
 

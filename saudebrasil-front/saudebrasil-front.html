@@ -57,7 +57,7 @@
 
   body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 16px; color: var(--gray-900); background: var(--gray-50); line-height: 1.5; }
 
-  /* ── UTILITIES ─────────────────────────────────────── */
+  
   .hidden { display: none !important; }
   .flex { display: flex; }
   .flex-col { flex-direction: column; }
@@ -129,7 +129,7 @@
   .text-green-600 { color: var(--green-600); }
   .text-green-700 { color: var(--green-700); }
 
-  /* ── BACKGROUNDS ─────────────────────────────────────── */
+  
   .bg-white { background: #fff; }
   .bg-gray-50 { background: var(--gray-50); }
   .bg-gray-100 { background: var(--gray-100); }
@@ -142,7 +142,7 @@
   .bg-red-50 { background: var(--red-50); }
   .bg-green-50 { background: var(--green-50); }
 
-  /* ── BUTTONS ─────────────────────────────────────── */
+
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
     padding: 0.5rem 1rem; border-radius: var(--radius); border: none;
@@ -223,7 +223,7 @@
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  /* ── SWITCH ─────────────────────────────────────── */
+  
   .switch-wrap { display: flex; align-items: center; justify-content: space-between; }
   .switch { position: relative; width: 2.75rem; height: 1.5rem; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
@@ -250,7 +250,7 @@
   /* ── SEPARATOR ─────────────────────────────────────── */
   .separator { border: none; border-top: 1px solid var(--gray-200); margin: 0; }
 
-  /* ── TOAST ─────────────────────────────────────── */
+  
   #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
   .toast {
     background: var(--gray-900); color: #fff; padding: 0.875rem 1.25rem;
@@ -264,7 +264,7 @@
   .toast-desc { color: #9ca3af; font-size: 0.8125rem; margin-top: 0.125rem; }
   @keyframes toast-in { from { opacity: 0; transform: translateX(1rem); } to { opacity: 1; transform: none; } }
 
-  /* ── MODAL / DIALOG ─────────────────────────────────────── */
+  
   .modal-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
     z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
@@ -276,9 +276,7 @@
     display: flex; flex-direction: column;
   }
 
-  /* ══════════════════════════════════════════════════
-     PAGE: LOGIN
-  ══════════════════════════════════════════════════ */
+
   #page-login { display: flex; min-height: 100vh; }
   .login-brand {
     display: none; width: 50%; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e3a8a 100%);
@@ -312,9 +310,7 @@
   .login-divider span em { background: #fff; padding: 0 1rem; }
   .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
-  /* ══════════════════════════════════════════════════
-     LAYOUT: DASHBOARD
-  ══════════════════════════════════════════════════ */
+ 
   #page-dashboard { display: none; min-height: 100vh; }
   #page-dashboard.active { display: flex; }
   .sidebar {
@@ -338,9 +334,7 @@
   .sidebar-main { flex: 1; overflow: auto; }
   .page-content { padding: 2rem; max-width: 80rem; margin: 0 auto; }
 
-  /* ══════════════════════════════════════════════════
-     DASHBOARD PAGE
-  ══════════════════════════════════════════════════ */
+  
   .dash-grid-2 { display: grid; grid-template-columns: 1fr; gap: 2rem; }
   @media(min-width:1024px){ .dash-grid-2 { grid-template-columns: 1fr 1fr; } }
   .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.375rem; }
@@ -375,15 +369,11 @@
   .history-date .month { font-size: 0.875rem; color: var(--gray-500); text-transform: capitalize; }
   .history-divider { width: 1px; height: 3rem; background: var(--gray-200); flex-shrink: 0; }
 
-  /* ══════════════════════════════════════════════════
-     MEDICAL REPORTS
-  ══════════════════════════════════════════════════ */
+
   .report-card-icon { width: 4rem; height: 4rem; background: var(--blue-100); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .report-actions { display: flex; gap: 0.5rem; margin-left: 1rem; }
 
-  /* ══════════════════════════════════════════════════
-     CLINICAL REPORT VIEW (modal)
-  ══════════════════════════════════════════════════ */
+ 
   .report-view-toolbar { padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0; }
   .report-view-body { flex: 1; overflow-y: auto; background: var(--gray-50); padding: 2rem; }
   .report-doc { max-width: 42rem; margin: 0 auto; background: #fff; border: 4px solid var(--blue-600); border-radius: var(--radius); box-shadow: var(--shadow-md); }
@@ -401,17 +391,13 @@
   .report-doc-footer { border-top: 2px solid var(--blue-600); background: var(--gray-50); padding: 1rem 1.5rem; font-size: 0.75rem; color: var(--gray-600); }
   .doctor-notes { border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 1rem; min-height: 6rem; background: var(--gray-50); }
 
-  /* ══════════════════════════════════════════════════
-     SETTINGS
-  ══════════════════════════════════════════════════ */
+
   .settings-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
   @media(min-width:768px){ .settings-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; } }
   .danger-zone { border-color: var(--red-200); }
   .danger-title { color: var(--red-600); }
 
-  /* ══════════════════════════════════════════════════
-     REGISTER SYMPTOM
-  ══════════════════════════════════════════════════ */
+
   .date-display-btn {
     width: 100%; display: flex; align-items: center; padding: 0.5rem 0.75rem;
     border: 1px solid var(--gray-300); border-radius: var(--radius);
@@ -423,17 +409,13 @@
   .intensity-value { font-size: 0.875rem; font-weight: 600; color: var(--blue-600); }
   .tip-box { margin-top: 1.5rem; padding: 1rem; background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: var(--radius); }
 
-  /* ══════════════════════════════════════════════════
-     LOGO COMPONENT
-  ══════════════════════════════════════════════════ */
+ 
   .logo { display: flex; align-items: center; gap: 0.5rem; }
   .logo-text { font-size: 1.25rem; font-weight: 700; }
   .logo-text.dark { color: var(--gray-900); }
   .logo-text.white { color: #fff; }
 
-  /* ══════════════════════════════════════════════════
-     CALENDAR POPOVER
-  ══════════════════════════════════════════════════ */
+  
   .cal-popover {
     display: none; position: absolute; z-index: 100; background: #fff;
     border: 1px solid var(--gray-200); border-radius: var(--radius);
@@ -454,14 +436,10 @@
   .mini-cal-day.selected { background: var(--blue-900); color: #fff; }
   .mini-cal-day.other-month { color: var(--gray-400); }
 
-  /* ══════════════════════════════════════════════════
-     CHART CONTAINER
-  ══════════════════════════════════════════════════ */
+  
   .chart-container { position: relative; height: 250px; }
 
-  /* ══════════════════════════════════════════════════
-     RESPONSIVE SIDEBAR
-  ══════════════════════════════════════════════════ */
+  
   @media(max-width: 768px) {
     .sidebar { width: 100%; height: auto; flex-direction: row; position: fixed; bottom: 0; left: 0; z-index: 50; }
     .sidebar-logo { display: none; }
@@ -601,6 +579,29 @@
                 </button>
               </div>
               <div id="err-reg-confirm" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <!-- CORRIGIDO (BUG 6): campos obrigatórios no banco adicionados ao formulário.
+                 Antes: POST /usuario enviava só nome/email/cpf/senha → NOT NULL constraint
+                 violation no INSERT (dataNascimento, telefone, genero são nullable=false). -->
+            <div>
+              <label class="form-label" for="reg-phone">Telefone</label>
+              <input id="reg-phone" class="input" type="tel" placeholder="(00) 00000-0000" oninput="validateRegisterForm()" onblur="validateRegisterForm()">
+              <div id="err-reg-phone" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <div>
+              <label class="form-label" for="reg-birth">Data de nascimento</label>
+              <input id="reg-birth" class="input" type="date" oninput="validateRegisterForm()" onblur="validateRegisterForm()">
+              <div id="err-reg-birth" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+            </div>
+            <div>
+              <label class="form-label" for="reg-gender">Gênero</label>
+              <select id="reg-gender" class="input" onchange="validateRegisterForm()">
+                <option value="">Selecione</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Outro">Outro</option>
+              </select>
+              <div id="err-reg-gender" class="field-error hidden"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
             </div>
             <button type="submit" id="btn-register" class="btn btn-primary btn-full" disabled>Cadastrar</button>
           </form>
@@ -924,13 +925,15 @@
                 </div>
               </div>
               <hr class="separator">
+              <!-- CORRIGIDO (BUG 10): inputs agora têm id e value vazio.
+                   initSettingsForm() preenche com dados do usuário logado. -->
               <div class="settings-form-grid">
-                <div><label class="form-label">Nome completo</label><input class="input" type="text" value="Gabriel Monteiro"></div>
-                <div><label class="form-label">E-mail</label><input class="input" type="email" value="gabriel.monteiro@email.com"></div>
-                <div><label class="form-label">CPF</label><input class="input" type="text" value="123.456.789-00" disabled></div>
-                <div><label class="form-label">Telefone</label><input class="input" type="text" value="(11) 98765-4321"></div>
-                <div><label class="form-label">Data de nascimento</label><input class="input" type="date" value="1990-01-15"></div>
-                <div><label class="form-label">Gênero</label><input class="input" type="text" value="Feminino"></div>
+                <div><label class="form-label">Nome completo</label><input id="settings-name" class="input" type="text" placeholder="Seu nome completo"></div>
+                <div><label class="form-label">E-mail</label><input id="settings-email" class="input" type="email" placeholder="seu@gmail.com"></div>
+                <div><label class="form-label">CPF</label><input id="settings-cpf" class="input" type="text" placeholder="000.000.000-00" disabled></div>
+                <div><label class="form-label">Telefone</label><input class="input" type="text" placeholder="(00) 00000-0000"></div>
+                <div><label class="form-label">Data de nascimento</label><input class="input" type="date"></div>
+                <div><label class="form-label">Gênero</label><input class="input" type="text" placeholder="—" disabled></div>
               </div>
               <button type="submit" class="btn btn-primary">Salvar alterações</button>
             </form>
@@ -1101,6 +1104,10 @@ function logout() {
   currentUser = null;
   userSintomas = [];
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  // CORRIGIDO (BUG 9): reportChartInstance também precisa ser destruído.
+  // Sem isso, múltiplos ciclos login→relatório→logout acumulavam instâncias
+  // Chart.js orphaned causando memory leak e erros de "canvas já em uso".
+  if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
   document.getElementById('page-dashboard').classList.remove('active');
   document.getElementById('page-login').style.display = 'flex';
   // Limpa os campos do login
@@ -1118,6 +1125,10 @@ function showSection(name, btn) {
 
   // Ao entrar no histórico, recarrega da API
   if (name === 'health-history') renderHistoryFromCache();
+  // CORRIGIDO (BUG 10): initSettingsForm() existia mas nunca era chamada.
+  // Os campos de configurações exibiam valores estáticos do HTML ("Gabriel Monteiro")
+  // em vez dos dados do usuário logado.
+  if (name === 'settings') initSettingsForm();
 }
 
 // ══════════════════════════════════════════════════
@@ -1207,20 +1218,31 @@ function validateRegisterForm() {
   const cpf     = document.getElementById('reg-cpf').value;
   const pass    = document.getElementById('reg-password').value;
   const confirm = document.getElementById('reg-confirm').value;
+  // CORRIGIDO (BUG 6): novos campos obrigatórios incluídos na validação
+  const phone   = document.getElementById('reg-phone').value;
+  const birth   = document.getElementById('reg-birth').value;
+  const gender  = document.getElementById('reg-gender').value;
 
   const nameErr    = name    ? '' : 'Este campo é obrigatório';
   const emailErr   = email   ? validateEmailStr(email)   : '';
   const cpfErr     = cpf     ? validateCPF(cpf)          : '';
   const passErr    = pass    ? validatePasswordStr(pass)  : '';
   const confirmErr = confirm ? (confirm === pass ? '' : 'As senhas não coincidem') : '';
+  const phoneErr   = phone   ? '' : 'Este campo é obrigatório';
+  const birthErr   = birth   ? '' : 'Este campo é obrigatório';
+  const genderErr  = gender  ? '' : 'Selecione uma opção';
 
   showError('err-reg-name',    nameErr);
   showError('err-reg-email',   emailErr);
   showError('err-reg-cpf',     cpfErr);
   showError('err-reg-password',passErr);
   showError('err-reg-confirm', confirmErr);
+  showError('err-reg-phone',   phoneErr);
+  showError('err-reg-birth',   birthErr);
+  showError('err-reg-gender',  genderErr);
 
-  const valid = !nameErr&&name && !emailErr&&email && !cpfErr&&cpf && !passErr&&pass && !confirmErr&&confirm;
+  const valid = !nameErr&&name && !emailErr&&email && !cpfErr&&cpf && !passErr&&pass
+             && !confirmErr&&confirm && !phoneErr&&phone && !birthErr&&birth && !genderErr&&gender;
   document.getElementById('btn-register').disabled = !valid;
 }
 
@@ -1246,7 +1268,9 @@ document.getElementById('form-login').addEventListener('submit', async function 
     toast('Erro ao entrar', err.message, 'error');
   } finally {
     setLoading('btn-login', false, 'Entrar');
-    document.getElementById('btn-login').disabled = false;
+    // CORRIGIDO (BUG 8): removido disabled=false incondicional.
+    // validateLoginForm() já é responsável por habilitar/desabilitar o botão
+    // conforme o estado dos campos — forçar false criava janela de duplo-clique.
     validateLoginForm();
   }
 });
@@ -1254,36 +1278,42 @@ document.getElementById('form-login').addEventListener('submit', async function 
 // ══════════════════════════════════════════════════
 // FORMULÁRIO DE CADASTRO → POST /api/usuario
 // ══════════════════════════════════════════════════
-['reg-name','reg-email','reg-cpf','reg-password','reg-confirm'].forEach(id => {
-  document.getElementById(id).addEventListener('input', validateRegisterForm);
+['reg-name','reg-email','reg-cpf','reg-password','reg-confirm','reg-phone','reg-birth','reg-gender'].forEach(id => {
+  document.getElementById(id).addEventListener('input',  validateRegisterForm);
+  document.getElementById(id).addEventListener('change', validateRegisterForm);
 });
 
 document.getElementById('form-register').addEventListener('submit', async function (e) {
   e.preventDefault();
-  const nome  = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const cpf   = document.getElementById('reg-cpf').value.replace(/\D/g,''); // só números
-  const senha = document.getElementById('reg-password').value;
+  const nome           = document.getElementById('reg-name').value.trim();
+  const email          = document.getElementById('reg-email').value.trim();
+  const cpf            = document.getElementById('reg-cpf').value.replace(/\D/g,'');
+  const senha          = document.getElementById('reg-password').value;
+  // CORRIGIDO (BUG 6): campos obrigatórios agora enviados no payload
+  const telefone       = document.getElementById('reg-phone').value.trim();
+  const dataNascimento = document.getElementById('reg-birth').value;  // "YYYY-MM-DD"
+  const genero         = document.getElementById('reg-gender').value;
 
   setLoading('btn-register', true, 'Cadastrar');
   try {
-    await api('POST', '/usuario', { nome, email, cpf, senha });
+    await api('POST', '/usuario', { nome, email, cpf, senha, telefone, dataNascimento, genero });
     toast('Cadastro realizado com sucesso!', 'Faça login para continuar.');
-    // Limpa campos
-    ['reg-name','reg-email','reg-cpf','reg-password','reg-confirm'].forEach(id => {
+    ['reg-name','reg-email','reg-cpf','reg-password','reg-confirm','reg-phone','reg-birth','reg-gender'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('btn-register').disabled = true;
     switchLoginTab('login', document.querySelector('.tabs-list .tab-trigger'));
   } catch (err) {
-    // Erros específicos mapeados para os campos
+    // CORRIGIDO (BUG 7): 'gmail' verificado ANTES de 'email'.
+    // A mensagem do backend "O email deve ser um Gmail" contém a palavra "email",
+    // então o branch de gmail nunca era alcançado na versão original.
     const msg = err.message;
     if (msg.toLowerCase().includes('cpf')) {
       showError('err-reg-cpf', msg);
-    } else if (msg.toLowerCase().includes('email')) {
-      showError('err-reg-email', msg);
     } else if (msg.toLowerCase().includes('gmail')) {
       showError('err-reg-email', 'O e-mail deve ser um Gmail (@gmail.com)');
+    } else if (msg.toLowerCase().includes('email')) {
+      showError('err-reg-email', msg);
     } else {
       toast('Erro no cadastro', msg, 'error');
     }

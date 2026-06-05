@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import projeto.unirio.saudebrasil.dto.LoginRequest;
 import projeto.unirio.saudebrasil.entitys.Usuario;
-import projeto.unirio.saudebrasil.repository.UsuarioRepository;
 import projeto.unirio.saudebrasil.service.UsuarioService;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import projeto.unirio.saudebrasil.repository.UsuarioRepository;
 
 
 @RestController
@@ -42,15 +42,15 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<Usuario> atualizar(@PathVariable Long id,
+                                              @RequestBody Usuario usuario) {
         Usuario usuarioAtualizado = usuarioService.atualizarPerfil(id, usuario);
         return ResponseEntity.ok(usuarioAtualizado);
     }
 
-    @DeleteMapping(("/{id}"))
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluirPerfil(@PathVariable Long id) {
         usuarioService.excluirPerfil(id);
         return ResponseEntity.noContent().build();
     }
-
 }
